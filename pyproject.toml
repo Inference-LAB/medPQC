@@ -1,0 +1,90 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "medpqc"
+version = "1.0.0"
+description = "High-Performance Hybrid Post-Quantum Medical Image Encryption Engine"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+authors = [
+    {name = "Muhammad Khubaib Ahmad", email = "khubaib.ahmad@inference-lab.org"},
+    {name = "Muhammad Khubaib Ahmad", email = "muhammadkhubaibahmad854@gmail.com"},
+    {name = "Muzammil Shadab", email = "muzammil.shadab@inference-lab.org"}
+]
+keywords = [
+    "medical-image-encryption",
+    "post-quantum-cryptography",
+    "ml-kem",
+    "fips-203",
+    "lorenz-chaos",
+    "dicom-security",
+    "authenticated-encryption"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Healthcare Industry",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Scientific/Engineering :: Medical Science Apps."
+]
+dependencies = [
+    "numpy>=1.22.0",
+    "scipy>=1.8.0",
+    "pycryptodome>=3.14.0",
+    "cryptography>=38.0.0",
+    "numba>=0.56.0",
+    "pydicom>=2.3.0",
+    "opencv-python-headless>=4.5.0",
+    "matplotlib>=3.5.0"
+]
+
+[project.optional-dependencies]
+pqc = [
+    "liboqs-python>=0.8.0"
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/Inference-LAB/medPQC"
+Repository = "https://github.com/Inference-LAB/medPQC"
+Issues = "https://github.com/Inference-LAB/medPQC/issues"
+
+[tool.setuptools.packages.find]
+include = ["medpqc*"]
+exclude = ["tests*", "examples*", "tests_data*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --strict-markers"
+
+[tool.coverage.run]
+source = ["medpqc"]
+omit = [
+    "*/tests/*",
+    "*/examples/*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "except ImportError:",
+    "def njit",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+show_missing = true
+fail_under = 100
