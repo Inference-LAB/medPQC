@@ -1,12 +1,12 @@
 """
 tests.test_chaos_lorenz
 ========================
-Unit tests for medpqc.chaos.lorenz module.
+Unit tests for medpqc.experimental.chaos.lorenz module.
 """
 
 import numpy as np
 import pytest
-from medpqc.chaos.lorenz import LorenzChaosEngine, _rk4_step
+from medpqc.experimental.chaos.lorenz import LorenzChaosEngine, _rk4_step
 
 def test_lorenz_seed_to_state_determinism():
     seed = b"test_seed_12345"

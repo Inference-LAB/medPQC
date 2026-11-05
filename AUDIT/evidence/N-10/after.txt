@@ -1,0 +1,28 @@
+=== Remediated Execution for N-10 ===
+Command: python -m pytest tests/adversarial/exploits/test_exploit_n10.py -v
+Exit Code: 0
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 13 items
+
+tests/adversarial/exploits/test_exploit_n10.py::test_verify_rejects_bad_public_key[] PASSED [  7%]
+tests/adversarial/exploits/test_exploit_n10.py::test_verify_rejects_bad_public_key[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] PASSED [ 15%]
+tests/adversarial/exploits/test_exploit_n10.py::test_verify_rejects_bad_public_key[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] PASSED [ 23%]
+tests/adversarial/exploits/test_exploit_n10.py::test_verify_rejects_bad_public_key[None] PASSED [ 30%]
+tests/adversarial/exploits/test_exploit_n10.py::test_verify_rejects_bad_public_key[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] PASSED [ 38%]
+tests/adversarial/exploits/test_exploit_n10.py::test_verify_rejects_bad_public_key[12345] PASSED [ 46%]
+tests/adversarial/exploits/test_exploit_n10.py::test_verify_rejects_bad_signature_length[0] PASSED [ 53%]
+tests/adversarial/exploits/test_exploit_n10.py::test_verify_rejects_bad_signature_length[32] PASSED [ 61%]
+tests/adversarial/exploits/test_exploit_n10.py::test_verify_rejects_bad_signature_length[63] PASSED [ 69%]
+tests/adversarial/exploits/test_exploit_n10.py::test_verify_rejects_bad_signature_length[65] PASSED [ 76%]
+tests/adversarial/exploits/test_exploit_n10.py::test_verify_rejects_bad_signature_length[128] PASSED [ 84%]
+tests/adversarial/exploits/test_exploit_n10.py::test_kdf_salt_selection_changes_output_and_matches_kat PASSED [ 92%]
+tests/adversarial/exploits/test_exploit_n10.py::test_mutation_score_meets_floor_and_mutant_count PASSED [100%]
+
+============================= 13 passed in 0.91s ==============================

@@ -1,0 +1,69 @@
+=== Baseline Execution for N-15 (tag v2.4.0) ===
+Command: python -m pytest test_exploit_n15.py -v
+Exit Code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n15.py::test_ledger_yaml_has_no_hardcoded_status FAILED [ 50%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n15.py::test_no_forbidden_status_words_in_audit_reports FAILED [100%]
+
+================================== FAILURES ===================================
+__________________ test_ledger_yaml_has_no_hardcoded_status ___________________
+
+    def test_ledger_yaml_has_no_hardcoded_status():
+        """N-15: AUDIT/ledger.yaml must NOT contain hardcoded status: fields; statuses must be derived."""
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        ledger_yaml = repo_root / "AUDIT" / "ledger.yaml"
+        assert ledger_yaml.exists(), "AUDIT/ledger.yaml must exist"
+    
+        raw_text = ledger_yaml.read_text(encoding="utf-8")
+        data = yaml.safe_load(raw_text) or {}
+        findings = data.get("findings", [])
+        assert len(findings) > 0, "Expected findings in ledger.yaml"
+    
+        findings_with_status = [f.get("id") for f in findings if "status" in f]
+>       assert not findings_with_status, (
+            f"ledger.yaml contains hardcoded 'status:' in {len(findings_with_status)} entries: {findings_with_status[:5]}"
+        )
+E       AssertionError: ledger.yaml contains hardcoded 'status:' in 68 entries: ['F-HS-01', 'F-HS-02', 'F-HS-03', 'F-HS-04', 'F-HS-05']
+E       assert not ['F-HS-01', 'F-HS-02', 'F-HS-03', 'F-HS-04', 'F-HS-05', 'F-HS-06', 'F-HS-07', 'F-HS-08', 'F-HS-09', 'F-ENV-01', 'F-ENV-02', 'F-ENV-03', 'F-ENV-04', 'F-ENV-05', 'F-ENV-06', 'F-DICOM-01', 'F-DICOM-02', 'F-DICOM-03', 'F-DICOM-04', 'F-DICOM-05', 'F-DICOM-06', 'F-DICOM-07', 'F-DICOM-08', 'F-DICOM-09', 'F-DICOM-10', 'F-CHAOS-01', 'F-CHAOS-02', 'F-CHAOS-03', 'F-QA-01', 'F-QA-02', 'F-QA-03', 'F-QA-04', 'F-QA-05', 'F-QA-06', 'F-QA-07', 'F-PKG-01', 'F-BENCH-01', 'F-DOC-01', 'F-DOC-02', 'F-DOC-03', 'F-DOC-04', 'F-REL-01', 'F-KAT-01', 'D-01', 'D-02', 'D-03', 'D-04', 'D-05', 'D-06', 'D-07', 'D-08', 'D-09', 'D-10', 'D-11', 'D-12', 'D-13', 'D-14', 'D-15', 'D-16', 'D-17', 'D-18', 'D-19', 'D-20', 'D-21', 'D-22', 'D-23', 'D-24', 'D-25']
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n15.py:45: AssertionError
+_______________ test_no_forbidden_status_words_in_audit_reports _______________
+
+    def test_no_forbidden_status_words_in_audit_reports():
+        """N-15: AUDIT reports must not contain forbidden status words (OPEN, WONTFIX, RESOLVED)."""
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        audit_dir = repo_root / "AUDIT"
+        assert audit_dir.exists()
+    
+        violations = []
+        for md_file in audit_dir.glob("*.md"):
+            text = md_file.read_text(encoding="utf-8")
+            for bad_word in FORBIDDEN_STATUS_WORDS:
+                # Check for table status or standalone token
+                if f"**{bad_word}**" in text or f"| {bad_word} |" in text or f": {bad_word}" in text:
+                    violations.append(f"{md_file.name}: contains forbidden status token '{bad_word}'")
+    
+>       assert not violations, f"Found forbidden status tokens in AUDIT/:\n" + "\n".join(violations)
+E       AssertionError: Found forbidden status tokens in AUDIT/:
+E         RELEASE_READINESS.md: contains forbidden status token 'OPEN'
+E         RELEASE_READINESS.md: contains forbidden status token 'WONTFIX'
+E       assert not ["RELEASE_READINESS.md: contains forbidden status token 'OPEN'", "RELEASE_READINESS.md: contains forbidden status token 'WONTFIX'"]
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n15.py:64: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n15.py::test_ledger_yaml_has_no_hardcoded_status - AssertionError: ledger.yaml contains hardcoded 'status:' in 68 entries: ['F-HS-01', 'F-HS-02', 'F-HS-03', 'F-HS-04', 'F-HS-05']
+assert not ['F-HS-01', 'F-HS-02', 'F-HS-03', 'F-HS-04', 'F-HS-05', 'F-HS-06', 'F-HS-07', 'F-HS-08', 'F-HS-09', 'F-ENV-01', 'F-ENV-02', 'F-ENV-03', 'F-ENV-04', 'F-ENV-05', 'F-ENV-06', 'F-DICOM-01', 'F-DICOM-02', 'F-DICOM-03', 'F-DICOM-04', 'F-DICOM-05', 'F-DICOM-06', 'F-DICOM-07', 'F-DICOM-08', 'F-DICOM-09', 'F-DICOM-10', 'F-CHAOS-01', 'F-CHAOS-02', 'F-CHAOS-03', 'F-QA-01', 'F-QA-02', 'F-QA-03', 'F-QA-04', 'F-QA-05', 'F-QA-06', 'F-QA-07', 'F-PKG-01', 'F-BENCH-01', 'F-DOC-01', 'F-DOC-02', 'F-DOC-03', 'F-DOC-04', 'F-REL-01', 'F-KAT-01', 'D-01', 'D-02', 'D-03', 'D-04', 'D-05', 'D-06', 'D-07', 'D-08', 'D-09', 'D-10', 'D-11', 'D-12', 'D-13', 'D-14', 'D-15', 'D-16', 'D-17', 'D-18', 'D-19', 'D-20', 'D-21', 'D-22', 'D-23', 'D-24', 'D-25']
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n15.py::test_no_forbidden_status_words_in_audit_reports - AssertionError: Found forbidden status tokens in AUDIT/:
+  RELEASE_READINESS.md: contains forbidden status token 'OPEN'
+  RELEASE_READINESS.md: contains forbidden status token 'WONTFIX'
+assert not ["RELEASE_READINESS.md: contains forbidden status token 'OPEN'", "RELEASE_READINESS.md: contains forbidden status token 'WONTFIX'"]
+============================== 2 failed in 0.95s ==============================

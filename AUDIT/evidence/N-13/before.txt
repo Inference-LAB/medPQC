@@ -1,0 +1,43 @@
+=== Baseline Execution for N-13 (tag v2.4.0) ===
+Command: python -m pytest test_exploit_n13.py -v
+Exit Code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n13.py::test_benchmark_csvs_have_strict_lf_line_endings FAILED [ 50%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n13.py::test_benchmark_report_exists_and_synced PASSED [100%]
+
+================================== FAILURES ===================================
+_______________ test_benchmark_csvs_have_strict_lf_line_endings _______________
+
+    def test_benchmark_csvs_have_strict_lf_line_endings():
+        """N-13: All benchmark CSV files in benchmarks/results/ must have LF-only line endings."""
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        bench_dir = repo_root / "benchmarks" / "results"
+        assert bench_dir.exists(), "benchmarks/results/ directory must exist"
+    
+        csv_files = list(bench_dir.glob("*.csv"))
+        assert len(csv_files) > 0, "Expected benchmark CSV files in benchmarks/results/"
+    
+        crlf_files = []
+        for csv_file in csv_files:
+            content_bytes = csv_file.read_bytes()
+            if b"\r\n" in content_bytes:
+                crlf_files.append(csv_file.name)
+    
+>       assert not crlf_files, f"Found CRLF line endings in benchmark CSVs: {crlf_files}"
+E       AssertionError: Found CRLF line endings in benchmark CSVs: ['ablation_results.csv', 'handshake_bench.csv']
+E       assert not ['ablation_results.csv', 'handshake_bench.csv']
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n13.py:33: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n13.py::test_benchmark_csvs_have_strict_lf_line_endings - AssertionError: Found CRLF line endings in benchmark CSVs: ['ablation_results.csv', 'handshake_bench.csv']
+assert not ['ablation_results.csv', 'handshake_bench.csv']
+========================= 1 failed, 1 passed in 0.75s =========================

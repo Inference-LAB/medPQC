@@ -1,0 +1,23 @@
+=== Remediation Execution for N-02 (HEAD) ===
+Command: python -m pytest test_exploit_n02.py -v
+Exit Code: 0
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+tests/adversarial/exploits/test_exploit_n02.py::test_in_memory_store_requires_explicit_dev_flag PASSED [ 50%]
+tests/adversarial/exploits/test_exploit_n02.py::test_sqlite_single_winner_across_processes PASSED [100%]
+
+============================== warnings summary ===============================
+tests/adversarial/exploits/test_exploit_n02.py::test_in_memory_store_requires_explicit_dev_flag
+  /workspace/medpqc\tests\adversarial\exploits\test_exploit_n02.py:59: NonDurableReplayStoreWarning: Using non-durable in-memory replay store in ResponderContext.
+    ctx = ResponderContext("bob", identity, trust, mem_store, allow_non_durable_replay_store=True)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 2 passed, 1 warning in 5.73s =========================

@@ -1,0 +1,43 @@
+Baseline Git Commit: 7367c26d05c2ef9ada3f7e2a0684362aa614e00d
+Command: python -m pytest tests/adversarial/exploits/test_exploit_f_hs_01.py -v
+Exit Code: 1
+
+Captured Output:
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_f_hs_01.py::test_no_unauthenticated_parameter_in_public_api FAILED [100%]
+
+================================== FAILURES ===================================
+_______________ test_no_unauthenticated_parameter_in_public_api _______________
+
+    def test_no_unauthenticated_parameter_in_public_api():
+        """
+        F-HS-01: Verifies that no parameter named like 'allow_unauth*' exists in any public callable.
+        Must fail on v2.2 where allow_unauthenticated is plumbed through the production API.
+        """
+        for fn in (
+            AuthenticatedHybridKEM.respond,
+            AuthenticatedHybridKEM.finalize,
+            DICOMPACSSession.create_client_session,
+            DICOMPACSSession.encrypt_dicom_study,
+            DICOMPACSSession.decrypt_dicom_study,
+        ):
+            params = [p.lower() for p in inspect.signature(fn).parameters.keys()]
+>           assert not any("unauth" in p for p in params), f"{fn.__name__} has unauthenticated parameter: {params}"
+E           AssertionError: respond has unauthenticated parameter: ['init_message', 'bob_identity', 'expected_alice_id_pub', 'trust_store', 'replay_protector', 'current_time', 'allow_unauthenticated']
+E           assert not True
+E            +  where True = any(<generator object test_no_unauthenticated_parameter_in_public_api.<locals>.<genexpr> at 0x000001DCC4600520>)
+
+tests\adversarial\exploits\test_exploit_f_hs_01.py:23: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_f_hs_01.py::test_no_unauthenticated_parameter_in_public_api - AssertionError: respond has unauthenticated parameter: ['init_message', 'bob_identity', 'expected_alice_id_pub', 'trust_store', 'replay_protector', 'current_time', 'allow_unauthenticated']
+assert not True
+ +  where True = any(<generator object test_no_unauthenticated_parameter_in_public_api.<locals>.<genexpr> at 0x000001DCC4600520>)
+============================== 1 failed in 3.29s ==============================

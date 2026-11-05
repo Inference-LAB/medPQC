@@ -1,0 +1,47 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d17.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_d17.py::test_mypy_strict_config FAILED [100%]
+
+================================== FAILURES ===================================
+___________________________ test_mypy_strict_config ___________________________
+
+    def test_mypy_strict_config():
+        """
+        D-17: Verifies that pyproject.toml explicitly configures mypy with strict = true.
+        Must fail on v2.3.0 where strict mode was not enabled.
+        """
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        pyproject_path = repo_root / "pyproject.toml"
+    
+        with open(pyproject_path, "rb") as f:
+            config = tomllib.load(f)
+    
+        mypy_cfg = config.get("tool", {}).get("mypy", {})
+>       assert mypy_cfg.get("strict") is True, "tool.mypy.strict must be set to True"
+E       AssertionError: tool.mypy.strict must be set to True
+E       assert None is True
+E        +  where None = <built-in method get of dict object at 0x0000019B33749580>('strict')
+E        +    where <built-in method get of dict object at 0x0000019B33749580> = {'ignore_missing_imports': True, 'files': ['medpqc']}.get
+
+tests/adversarial/exploits/test_exploit_d17.py:23: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d17.py::test_mypy_strict_config - AssertionError: tool.mypy.strict must be set to True
+assert None is True
+ +  where None = <built-in method get of dict object at 0x0000019B33749580>('strict')
+ +    where <built-in method get of dict object at 0x0000019B33749580> = {'ignore_missing_imports': True, 'files': ['medpqc']}.get
+============================== 1 failed in 1.31s ==============================
+
+=== STDERR ===
+

@@ -1,0 +1,51 @@
+=== Baseline Execution for N-16 (tag v2.4.0) ===
+Command: python -m pytest test_exploit_n16.py -v
+Exit Code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n16.py::test_gitattributes_exists_and_enforces_lf FAILED [ 50%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n16.py::test_sha256sums_has_strict_lf_line_endings FAILED [100%]
+
+================================== FAILURES ===================================
+__________________ test_gitattributes_exists_and_enforces_lf __________________
+
+    def test_gitattributes_exists_and_enforces_lf():
+        """N-16: .gitattributes must exist and enforce text=auto eol=lf."""
+        repo_root = Path.cwd()
+        gitattrs = repo_root / ".gitattributes"
+>       assert gitattrs.exists(), ".gitattributes must exist at repository root"
+E       AssertionError: .gitattributes must exist at repository root
+E       assert False
+E        +  where False = exists()
+E        +    where exists = WindowsPath('/workspace/medpqc-baseline/.gitattributes').exists
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n16.py:22: AssertionError
+_________________ test_sha256sums_has_strict_lf_line_endings __________________
+
+    def test_sha256sums_has_strict_lf_line_endings():
+        """N-16: release/SHA256SUMS.txt must strictly use LF-only line endings."""
+        repo_root = Path.cwd()
+        sha_file = repo_root / "release" / "SHA256SUMS.txt"
+        assert sha_file.exists(), "release/SHA256SUMS.txt must exist"
+        raw_bytes = sha_file.read_bytes()
+>       assert b"\r\n" not in raw_bytes, "release/SHA256SUMS.txt contains CRLF line endings"
+E       AssertionError: release/SHA256SUMS.txt contains CRLF line endings
+E       assert b'\r\n' not in b'ac53a6e2b0b1d215c289fccca6e9ca97e922b6dff708ef6b835066e31f2e596b  medpqc-2.4.0.tar.gz\r\n34ddc26d3a5b41d0531884716b2972ce18c8a5955e620e0567ab983d70f97eb6  medpqc-2.4.0-py3-none-any.whl\r\n55f6c5f1bcb48ee5be669c168da6735566072f288b684ab54ec3b3432a507000  medpqc-v2.4.0.zip\r\n'
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n16.py:34: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n16.py::test_gitattributes_exists_and_enforces_lf - AssertionError: .gitattributes must exist at repository root
+assert False
+ +  where False = exists()
+ +    where exists = WindowsPath('/workspace/medpqc-baseline/.gitattributes').exists
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n16.py::test_sha256sums_has_strict_lf_line_endings - AssertionError: release/SHA256SUMS.txt contains CRLF line endings
+assert b'\r\n' not in b'ac53a6e2b0b1d215c289fccca6e9ca97e922b6dff708ef6b835066e31f2e596b  medpqc-2.4.0.tar.gz\r\n34ddc26d3a5b41d0531884716b2972ce18c8a5955e620e0567ab983d70f97eb6  medpqc-2.4.0-py3-none-any.whl\r\n55f6c5f1bcb48ee5be669c168da6735566072f288b684ab54ec3b3432a507000  medpqc-v2.4.0.zip\r\n'
+============================== 2 failed in 0.62s ==============================

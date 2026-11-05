@@ -1,0 +1,6 @@
+Gate 1: Clean Git Tree & Tag
+Status: PASS
+Reason: Working tree clean, HEAD tagged v2.5.0, code_tree_hash: 8a37702871756686
+Tags: ['v2.5.0']
+Code tree hash: 8a37702871756686a0c42752cda2b39216199da8ec834962af2c23f8102fa4fe
+Status lines: []

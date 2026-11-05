@@ -1,0 +1,61 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d04.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+tests/adversarial/exploits/test_exploit_d04.py::test_ecdh_point_and_length_validation FAILED [ 50%]
+tests/adversarial/exploits/test_exploit_d04.py::test_mlkem_encapsulation_only_responder FAILED [100%]
+
+================================== FAILURES ===================================
+____________________ test_ecdh_point_and_length_validation ____________________
+
+    def test_ecdh_point_and_length_validation():
+        """
+        D-04: Verifies rejection of compressed points, off-curve points, identity/infinity,
+        and non-65-byte uncompressed P-256 public keys.
+        Must fail on v2.3.0.
+        """
+        ecdh = ECDHKeyExchange()
+    
+        # 33-byte compressed point
+        compressed_key = b"/x02" + b"/x01" * 32
+        with pytest.raises((ValueError, KEMError)):
+>           ecdh.compute_shared_secret(compressed_key)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'ECDHKeyExchange' object has no attribute 'compute_shared_secret'
+
+tests/adversarial/exploits/test_exploit_d04.py:20: AttributeError
+___________________ test_mlkem_encapsulation_only_responder ___________________
+
+    def test_mlkem_encapsulation_only_responder():
+        """
+        D-04: Verifies responder uses encapsulation-only function (encapsulate)
+        without generating a throwaway full keypair, and validates ciphertext length before decapsulation.
+        Must fail on v2.3.0.
+        """
+        kem = PostQuantumKEM()
+    
+        # Ciphertext with invalid length
+        short_ct = b"/x00" * 100
+        valid_dk = b"/x00" * MLKEM768_DK_LEN
+        with pytest.raises(KEMError) as exc_info:
+>           kem.decapsulate(short_ct, valid_dk)
+E           TypeError: PostQuantumKEM.decapsulate() takes 2 positional arguments but 3 were given
+
+tests/adversarial/exploits/test_exploit_d04.py:44: TypeError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d04.py::test_ecdh_point_and_length_validation - AttributeError: 'ECDHKeyExchange' object has no attribute 'compute_shared_secret'
+FAILED tests/adversarial/exploits/test_exploit_d04.py::test_mlkem_encapsulation_only_responder - TypeError: PostQuantumKEM.decapsulate() takes 2 positional arguments but 3 were given
+============================== 2 failed in 4.92s ==============================
+
+=== STDERR ===
+

@@ -1,0 +1,342 @@
+Baseline Git Commit: 7367c26d05c2ef9ada3f7e2a0684362aa614e00d
+Command: python -m pytest tests/adversarial/exploits/test_exploit_f_hs_06.py -v
+Exit Code: 1
+
+Captured Output:
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_f_hs_06.py::test_hkdf_uses_library_and_has_no_hash_fallback FAILED [100%]
+
+================================== FAILURES ===================================
+_______________ test_hkdf_uses_library_and_has_no_hash_fallback _______________
+
+    def test_hkdf_uses_library_and_has_no_hash_fallback():
+        """
+        F-HS-06: Verifies HKDF uses maintained library implementation without silent fallback.
+        Must fail on v2.2 where custom hkdf_extract/expand has hasattr(hashlib, 'sha3_512') fallback.
+        """
+        src = inspect.getsource(medpqc.kem.combiner)
+>       assert "hasattr(hashlib" not in src and "else hashlib.sha512" not in src, (
+            "Found dynamic hash fallback in combiner.py"
+        )
+E       AssertionError: Found dynamic hash fallback in combiner.py
+E       assert ('hasattr(hashlib' not in '"""\nmedpqc.kem.combiner\n====================\nHybrid KEM Key Combiner using HKDF-SHA3-512 with Strict Session Context Binding.\n\nCombines Classical (ECDH P-256) and Post-Quantum (NIST FIPS 203 ML-KEM-768)\nshared secrets with domain-separated derivation for:\n  - K_AES (32 bytes): Authenticated image encryption\n  - K_MAC (32 bytes): Key-commitment & outer integrity verification\n  - S_CHAOS (32 bytes): Lorenz dynamical system initial state derivation\n\nIncludes transcript-bound session context to prevent algorithm downgrade,\ncross-session key substitution, and identity confusion attacks.\n"""\n\nimport hashlib\nimport hmac\nfrom typing import Tuple, Optional\n\ndef hkdf_extract(salt: bytes, ikm: bytes) -> bytes:\n    """HKDF-Extract using SHA3-512 (RFC 5869)."""\n    hash_fn = hashlib.sha3_512 if hasattr(hashlib, \'sha3_512\') else hashlib.sha512\n    if not salt:\n        salt = bytes(64)\n    return hmac.new(salt, ikm, hash_fn).digest()\n\ndef hkdf_expand(prk: bytes, info: bytes, length: int) -> bytes:\n    """HKDF-Expand using SHA3-512 (RFC 5869)."""\n    hash_fn = hashlib.sha3_512 if hasattr(hashlib, \'sha3_512\') else hashlib.sha512\n    t_prev = b""\n    okm = b""\n    counter = 1\n    while len(okm) < length:\n        t_curr = hmac.new(prk, t_prev + info + bytes([counter]), hash_fn).digest()\n        okm += t_curr\n        t_prev = t_curr\n        counter += 1\n    return okm[:length]\n\ndef hkdf_extract_and_expand(\n    ikm: bytes,\n    salt: bytes = b"",\n    info: bytes = b"HybridImageKEM-v2.1",\n    length: int = 64\n) -> bytes:\n    """Full HKDF Extract-and-Expand pipeline."""\n    prk = hkdf_extract(salt, ikm)\n    return hkdf_expand(prk, info, length)\n\ndef build_session_context(\n    protocol_version: str = "MedPQC-v2.1",\n    suite_id: str = "ECDH-P256+ML-KEM-768+Ed25519+AES-256-GCM",\n    sender_id: str = "client-pacs",\n    receiver_id: str = "server-pacs",\n    sender_ecdh_pub: bytes = b"",\n    receiver_ecdh_pub: bytes = b"",\n    pq_ciphertext: bytes = b"",\n    session_id: bytes = b"",\n    sender_id_pub: bytes = b"",\n    receiver_id_pub: bytes = b"",\n    transcript_hash: Optional[bytes] = None\n) -> bytes:\n    """\n    Constructs a canonical, transcript-bound session context string.\n    Binds identities, algorithm suite, public keys, KEM ciphertext,\n    and the full authenticated handshake transcript to eliminate\n    cross-session key confusion and replay attacks.\n    """\n    if transcript_hash is not None:\n        # Direct binding to the full authenticated dual-transcript hash\n        return hashlib.sha3_512(b"MedPQC-CanonicalTranscript|" + transcript_hash).digest()\n\n    def _to_bytes(v):\n        if isinstance(v, str):\n            return v.encode(\'utf-8\')\n        return bytes(v)\n\n    elements = [\n        _to_bytes(protocol_version),\n        _to_bytes(suite_id),\n        _to_bytes(sender_id),\n        _to_bytes(receiver_id),\n        _to_bytes(session_id),\n        _to_bytes(sender_id_pub),\n        _to_bytes(receiver_id_pub),\n        _to_bytes(sender_ecdh_pub),\n        _to_bytes(receiver_ecdh_pub),\n        _to_bytes(pq_ciphertext)\n    ]\n    # Length-prefixed canonical serialization\n    serialized = bytearray()\n    for el in elements:\n        serialized.extend(len(el).to_bytes(4, \'big\'))\n        serialized.extend(el)\n    return hashlib.sha3_512(bytes(serialized)).digest()\n\nclass HybridKeyCombiner:\n    """\n    Domain-separated hybrid key combiner.\n    Derives cryptographic keys and chaotic seeds from combined secrets.\n    """\n\n    @staticmethod\n    def combine(\n        k_ecdh: bytes,\n        k_pq: bytes,\n        salt: bytes = b"MedPQC-Salt-v2.1",\n        context: Optional[bytes] = None,\n        info: bytes = b"HybridImageKEM-v2.1"\n    ) -> Tuple[bytes, bytes, bytes]:\n        """\n        Derives domain-separated keys from length-encoded concatenation:\n          IKM = len(k_ecdh) || k_ecdh || len(k_pq) || k_pq\n        Returns: (k_aes [32 bytes], k_mac [32 bytes], okm [96 bytes])\n        """\n        if len(k_ecdh) != 32 or len(k_pq) != 32:\n            raise ValueError(\n                f"Invalid shared secret lengths: ECDH={len(k_ecdh)}, PQ={len(k_pq)}. "\n                "Expected exactly 32 bytes for each shared secret."\n            )\n\n        # Length-encoded IKM to prevent boundary-shifting ambiguities\n        ikm = len(k_ecdh).to_bytes(4, \'big\') + k_ecdh + len(k_pq).to_bytes(4, \'big\') + k_pq\n        prk = hkdf_extract(salt, ikm)\n\n        ctx = context if context is not None else info\n\n        # Strict domain separation for each cryptographic primitive\n        k_aes   = hkdf_expand(prk, ctx + b"|aes-256-gcm-encryption", 32)\n        k_mac   = hkdf_expand(prk, ctx + b"|hmac-sha3-authentication", 32)\n        s_chaos = hkdf_expand(prk, ctx + b"|lorenz-chaotic-keystream", 32)\n\n        okm = k_aes + k_mac + s_chaos\n        return k_aes, k_mac, okm\n\n    @staticmethod\n    def derive_all_keys(\n        k_ecdh: bytes,\n        k_pq: bytes,\n        session_context: bytes,\n        salt: bytes = b"MedPQC-Salt-v2.1"\n    ) -> Tuple[bytes, bytes, bytes]:\n        """\n        Derives (k_aes [32B], k_mac [32B], s_chaos [32B]) with strict session context binding.\n        """\n        k_aes, k_mac, okm = HybridKeyCombiner.combine(\n            k_ecdh, k_pq, salt=salt, context=session_context\n        )\n        s_chaos = okm[64:96]\n        return k_aes, k_mac, s_chaos\n'
+E         
+E         'hasattr(hashlib' is contained here:
+E           """
+E           medpqc.kem.combiner
+E           ====================
+E           Hybrid KEM Key Combiner using HKDF-SHA3-512 with Strict Session Context Binding.
+E           
+E           Combines Classical (ECDH P-256) and Post-Quantum (NIST FIPS 203 ML-KEM-768)
+E           shared secrets with domain-separated derivation for:
+E             - K_AES (32 bytes): Authenticated image encryption
+E             - K_MAC (32 bytes): Key-commitment & outer integrity verification
+E             - S_CHAOS (32 bytes): Lorenz dynamical system initial state derivation
+E           
+E           Includes transcript-bound session context to prevent algorithm downgrade,
+E           cross-session key substitution, and identity confusion attacks.
+E           """
+E           
+E           import hashlib
+E           import hmac
+E           from typing import Tuple, Optional
+E           
+E           def hkdf_extract(salt: bytes, ikm: bytes) -> bytes:
+E               """HKDF-Extract using SHA3-512 (RFC 5869)."""
+E               hash_fn = hashlib.sha3_512 if hasattr(hashlib, 'sha3_512') else hashlib.sha512
+E         ?                                   +++++++++++++++
+E               if not salt:
+E                   salt = bytes(64)
+E               return hmac.new(salt, ikm, hash_fn).digest()
+E           
+E           def hkdf_expand(prk: bytes, info: bytes, length: int) -> bytes:
+E               """HKDF-Expand using SHA3-512 (RFC 5869)."""
+E               hash_fn = hashlib.sha3_512 if hasattr(hashlib, 'sha3_512') else hashlib.sha512
+E               t_prev = b""
+E               okm = b""
+E               counter = 1
+E               while len(okm) < length:
+E                   t_curr = hmac.new(prk, t_prev + info + bytes([counter]), hash_fn).digest()
+E                   okm += t_curr
+E                   t_prev = t_curr
+E                   counter += 1
+E               return okm[:length]
+E           
+E           def hkdf_extract_and_expand(
+E               ikm: bytes,
+E               salt: bytes = b"",
+E               info: bytes = b"HybridImageKEM-v2.1",
+E               length: int = 64
+E           ) -> bytes:
+E               """Full HKDF Extract-and-Expand pipeline."""
+E               prk = hkdf_extract(salt, ikm)
+E               return hkdf_expand(prk, info, length)
+E           
+E           def build_session_context(
+E               protocol_version: str = "MedPQC-v2.1",
+E               suite_id: str = "ECDH-P256+ML-KEM-768+Ed25519+AES-256-GCM",
+E               sender_id: str = "client-pacs",
+E               receiver_id: str = "server-pacs",
+E               sender_ecdh_pub: bytes = b"",
+E               receiver_ecdh_pub: bytes = b"",
+E               pq_ciphertext: bytes = b"",
+E               session_id: bytes = b"",
+E               sender_id_pub: bytes = b"",
+E               receiver_id_pub: bytes = b"",
+E               transcript_hash: Optional[bytes] = None
+E           ) -> bytes:
+E               """
+E               Constructs a canonical, transcript-bound session context string.
+E               Binds identities, algorithm suite, public keys, KEM ciphertext,
+E               and the full authenticated handshake transcript to eliminate
+E               cross-session key confusion and replay attacks.
+E               """
+E               if transcript_hash is not None:
+E                   # Direct binding to the full authenticated dual-transcript hash
+E                   return hashlib.sha3_512(b"MedPQC-CanonicalTranscript|" + transcript_hash).digest()
+E           
+E               def _to_bytes(v):
+E                   if isinstance(v, str):
+E                       return v.encode('utf-8')
+E                   return bytes(v)
+E           
+E               elements = [
+E                   _to_bytes(protocol_version),
+E                   _to_bytes(suite_id),
+E                   _to_bytes(sender_id),
+E                   _to_bytes(receiver_id),
+E                   _to_bytes(session_id),
+E                   _to_bytes(sender_id_pub),
+E                   _to_bytes(receiver_id_pub),
+E                   _to_bytes(sender_ecdh_pub),
+E                   _to_bytes(receiver_ecdh_pub),
+E                   _to_bytes(pq_ciphertext)
+E               ]
+E               # Length-prefixed canonical serialization
+E               serialized = bytearray()
+E               for el in elements:
+E                   serialized.extend(len(el).to_bytes(4, 'big'))
+E                   serialized.extend(el)
+E               return hashlib.sha3_512(bytes(serialized)).digest()
+E           
+E           class HybridKeyCombiner:
+E               """
+E               Domain-separated hybrid key combiner.
+E               Derives cryptographic keys and chaotic seeds from combined secrets.
+E               """
+E           
+E               @staticmethod
+E               def combine(
+E                   k_ecdh: bytes,
+E                   k_pq: bytes,
+E                   salt: bytes = b"MedPQC-Salt-v2.1",
+E                   context: Optional[bytes] = None,
+E                   info: bytes = b"HybridImageKEM-v2.1"
+E               ) -> Tuple[bytes, bytes, bytes]:
+E                   """
+E                   Derives domain-separated keys from length-encoded concatenation:
+E                     IKM = len(k_ecdh) || k_ecdh || len(k_pq) || k_pq
+E                   Returns: (k_aes [32 bytes], k_mac [32 bytes], okm [96 bytes])
+E                   """
+E                   if len(k_ecdh) != 32 or len(k_pq) != 32:
+E                       raise ValueError(
+E                           f"Invalid shared secret lengths: ECDH={len(k_ecdh)}, PQ={len(k_pq)}. "
+E                           "Expected exactly 32 bytes for each shared secret."
+E                       )
+E           
+E                   # Length-encoded IKM to prevent boundary-shifting ambiguities
+E                   ikm = len(k_ecdh).to_bytes(4, 'big') + k_ecdh + len(k_pq).to_bytes(4, 'big') + k_pq
+E                   prk = hkdf_extract(salt, ikm)
+E           
+E                   ctx = context if context is not None else info
+E           
+E                   # Strict domain separation for each cryptographic primitive
+E                   k_aes   = hkdf_expand(prk, ctx + b"|aes-256-gcm-encryption", 32)
+E                   k_mac   = hkdf_expand(prk, ctx + b"|hmac-sha3-authentication", 32)
+E                   s_chaos = hkdf_expand(prk, ctx + b"|lorenz-chaotic-keystream", 32)
+E           
+E                   okm = k_aes + k_mac + s_chaos
+E                   return k_aes, k_mac, okm
+E           
+E               @staticmethod
+E               def derive_all_keys(
+E                   k_ecdh: bytes,
+E                   k_pq: bytes,
+E                   session_context: bytes,
+E                   salt: bytes = b"MedPQC-Salt-v2.1"
+E               ) -> Tuple[bytes, bytes, bytes]:
+E                   """
+E                   Derives (k_aes [32B], k_mac [32B], s_chaos [32B]) with strict session context binding.
+E                   """
+E                   k_aes, k_mac, okm = HybridKeyCombiner.combine(
+E                       k_ecdh, k_pq, salt=salt, context=session_context
+E                   )
+E                   s_chaos = okm[64:96]
+E                   return k_aes, k_mac, s_chaos)
+
+tests\adversarial\exploits\test_exploit_f_hs_06.py:14: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_f_hs_06.py::test_hkdf_uses_library_and_has_no_hash_fallback - AssertionError: Found dynamic hash fallback in combiner.py
+assert ('hasattr(hashlib' not in '"""\nmedpqc.kem.combiner\n====================\nHybrid KEM Key Combiner using HKDF-SHA3-512 with Strict Session Context Binding.\n\nCombines Classical (ECDH P-256) and Post-Quantum (NIST FIPS 203 ML-KEM-768)\nshared secrets with domain-separated derivation for:\n  - K_AES (32 bytes): Authenticated image encryption\n  - K_MAC (32 bytes): Key-commitment & outer integrity verification\n  - S_CHAOS (32 bytes): Lorenz dynamical system initial state derivation\n\nIncludes transcript-bound session context to prevent algorithm downgrade,\ncross-session key substitution, and identity confusion attacks.\n"""\n\nimport hashlib\nimport hmac\nfrom typing import Tuple, Optional\n\ndef hkdf_extract(salt: bytes, ikm: bytes) -> bytes:\n    """HKDF-Extract using SHA3-512 (RFC 5869)."""\n    hash_fn = hashlib.sha3_512 if hasattr(hashlib, \'sha3_512\') else hashlib.sha512\n    if not salt:\n        salt = bytes(64)\n    return hmac.new(salt, ikm, hash_fn).digest()\n\ndef hkdf_expand(prk: bytes, info: bytes, length: int) -> bytes:\n    """HKDF-Expand using SHA3-512 (RFC 5869)."""\n    hash_fn = hashlib.sha3_512 if hasattr(hashlib, \'sha3_512\') else hashlib.sha512\n    t_prev = b""\n    okm = b""\n    counter = 1\n    while len(okm) < length:\n        t_curr = hmac.new(prk, t_prev + info + bytes([counter]), hash_fn).digest()\n        okm += t_curr\n        t_prev = t_curr\n        counter += 1\n    return okm[:length]\n\ndef hkdf_extract_and_expand(\n    ikm: bytes,\n    salt: bytes = b"",\n    info: bytes = b"HybridImageKEM-v2.1",\n    length: int = 64\n) -> bytes:\n    """Full HKDF Extract-and-Expand pipeline."""\n    prk = hkdf_extract(salt, ikm)\n    return hkdf_expand(prk, info, length)\n\ndef build_session_context(\n    protocol_version: str = "MedPQC-v2.1",\n    suite_id: str = "ECDH-P256+ML-KEM-768+Ed25519+AES-256-GCM",\n    sender_id: str = "client-pacs",\n    receiver_id: str = "server-pacs",\n    sender_ecdh_pub: bytes = b"",\n    receiver_ecdh_pub: bytes = b"",\n    pq_ciphertext: bytes = b"",\n    session_id: bytes = b"",\n    sender_id_pub: bytes = b"",\n    receiver_id_pub: bytes = b"",\n    transcript_hash: Optional[bytes] = None\n) -> bytes:\n    """\n    Constructs a canonical, transcript-bound session context string.\n    Binds identities, algorithm suite, public keys, KEM ciphertext,\n    and the full authenticated handshake transcript to eliminate\n    cross-session key confusion and replay attacks.\n    """\n    if transcript_hash is not None:\n        # Direct binding to the full authenticated dual-transcript hash\n        return hashlib.sha3_512(b"MedPQC-CanonicalTranscript|" + transcript_hash).digest()\n\n    def _to_bytes(v):\n        if isinstance(v, str):\n            return v.encode(\'utf-8\')\n        return bytes(v)\n\n    elements = [\n        _to_bytes(protocol_version),\n        _to_bytes(suite_id),\n        _to_bytes(sender_id),\n        _to_bytes(receiver_id),\n        _to_bytes(session_id),\n        _to_bytes(sender_id_pub),\n        _to_bytes(receiver_id_pub),\n        _to_bytes(sender_ecdh_pub),\n        _to_bytes(receiver_ecdh_pub),\n        _to_bytes(pq_ciphertext)\n    ]\n    # Length-prefixed canonical serialization\n    serialized = bytearray()\n    for el in elements:\n        serialized.extend(len(el).to_bytes(4, \'big\'))\n        serialized.extend(el)\n    return hashlib.sha3_512(bytes(serialized)).digest()\n\nclass HybridKeyCombiner:\n    """\n    Domain-separated hybrid key combiner.\n    Derives cryptographic keys and chaotic seeds from combined secrets.\n    """\n\n    @staticmethod\n    def combine(\n        k_ecdh: bytes,\n        k_pq: bytes,\n        salt: bytes = b"MedPQC-Salt-v2.1",\n        context: Optional[bytes] = None,\n        info: bytes = b"HybridImageKEM-v2.1"\n    ) -> Tuple[bytes, bytes, bytes]:\n        """\n        Derives domain-separated keys from length-encoded concatenation:\n          IKM = len(k_ecdh) || k_ecdh || len(k_pq) || k_pq\n        Returns: (k_aes [32 bytes], k_mac [32 bytes], okm [96 bytes])\n        """\n        if len(k_ecdh) != 32 or len(k_pq) != 32:\n            raise ValueError(\n                f"Invalid shared secret lengths: ECDH={len(k_ecdh)}, PQ={len(k_pq)}. "\n                "Expected exactly 32 bytes for each shared secret."\n            )\n\n        # Length-encoded IKM to prevent boundary-shifting ambiguities\n        ikm = len(k_ecdh).to_bytes(4, \'big\') + k_ecdh + len(k_pq).to_bytes(4, \'big\') + k_pq\n        prk = hkdf_extract(salt, ikm)\n\n        ctx = context if context is not None else info\n\n        # Strict domain separation for each cryptographic primitive\n        k_aes   = hkdf_expand(prk, ctx + b"|aes-256-gcm-encryption", 32)\n        k_mac   = hkdf_expand(prk, ctx + b"|hmac-sha3-authentication", 32)\n        s_chaos = hkdf_expand(prk, ctx + b"|lorenz-chaotic-keystream", 32)\n\n        okm = k_aes + k_mac + s_chaos\n        return k_aes, k_mac, okm\n\n    @staticmethod\n    def derive_all_keys(\n        k_ecdh: bytes,\n        k_pq: bytes,\n        session_context: bytes,\n        salt: bytes = b"MedPQC-Salt-v2.1"\n    ) -> Tuple[bytes, bytes, bytes]:\n        """\n        Derives (k_aes [32B], k_mac [32B], s_chaos [32B]) with strict session context binding.\n        """\n        k_aes, k_mac, okm = HybridKeyCombiner.combine(\n            k_ecdh, k_pq, salt=salt, context=session_context\n        )\n        s_chaos = okm[64:96]\n        return k_aes, k_mac, s_chaos\n'
+  
+  'hasattr(hashlib' is contained here:
+    """
+    medpqc.kem.combiner
+    ====================
+    Hybrid KEM Key Combiner using HKDF-SHA3-512 with Strict Session Context Binding.
+    
+    Combines Classical (ECDH P-256) and Post-Quantum (NIST FIPS 203 ML-KEM-768)
+    shared secrets with domain-separated derivation for:
+      - K_AES (32 bytes): Authenticated image encryption
+      - K_MAC (32 bytes): Key-commitment & outer integrity verification
+      - S_CHAOS (32 bytes): Lorenz dynamical system initial state derivation
+    
+    Includes transcript-bound session context to prevent algorithm downgrade,
+    cross-session key substitution, and identity confusion attacks.
+    """
+    
+    import hashlib
+    import hmac
+    from typing import Tuple, Optional
+    
+    def hkdf_extract(salt: bytes, ikm: bytes) -> bytes:
+        """HKDF-Extract using SHA3-512 (RFC 5869)."""
+        hash_fn = hashlib.sha3_512 if hasattr(hashlib, 'sha3_512') else hashlib.sha512
+  ?                                   +++++++++++++++
+        if not salt:
+            salt = bytes(64)
+        return hmac.new(salt, ikm, hash_fn).digest()
+    
+    def hkdf_expand(prk: bytes, info: bytes, length: int) -> bytes:
+        """HKDF-Expand using SHA3-512 (RFC 5869)."""
+        hash_fn = hashlib.sha3_512 if hasattr(hashlib, 'sha3_512') else hashlib.sha512
+        t_prev = b""
+        okm = b""
+        counter = 1
+        while len(okm) < length:
+            t_curr = hmac.new(prk, t_prev + info + bytes([counter]), hash_fn).digest()
+            okm += t_curr
+            t_prev = t_curr
+            counter += 1
+        return okm[:length]
+    
+    def hkdf_extract_and_expand(
+        ikm: bytes,
+        salt: bytes = b"",
+        info: bytes = b"HybridImageKEM-v2.1",
+        length: int = 64
+    ) -> bytes:
+        """Full HKDF Extract-and-Expand pipeline."""
+        prk = hkdf_extract(salt, ikm)
+        return hkdf_expand(prk, info, length)
+    
+    def build_session_context(
+        protocol_version: str = "MedPQC-v2.1",
+        suite_id: str = "ECDH-P256+ML-KEM-768+Ed25519+AES-256-GCM",
+        sender_id: str = "client-pacs",
+        receiver_id: str = "server-pacs",
+        sender_ecdh_pub: bytes = b"",
+        receiver_ecdh_pub: bytes = b"",
+        pq_ciphertext: bytes = b"",
+        session_id: bytes = b"",
+        sender_id_pub: bytes = b"",
+        receiver_id_pub: bytes = b"",
+        transcript_hash: Optional[bytes] = None
+    ) -> bytes:
+        """
+        Constructs a canonical, transcript-bound session context string.
+        Binds identities, algorithm suite, public keys, KEM ciphertext,
+        and the full authenticated handshake transcript to eliminate
+        cross-session key confusion and replay attacks.
+        """
+        if transcript_hash is not None:
+            # Direct binding to the full authenticated dual-transcript hash
+            return hashlib.sha3_512(b"MedPQC-CanonicalTranscript|" + transcript_hash).digest()
+    
+        def _to_bytes(v):
+            if isinstance(v, str):
+                return v.encode('utf-8')
+            return bytes(v)
+    
+        elements = [
+            _to_bytes(protocol_version),
+            _to_bytes(suite_id),
+            _to_bytes(sender_id),
+            _to_bytes(receiver_id),
+            _to_bytes(session_id),
+            _to_bytes(sender_id_pub),
+            _to_bytes(receiver_id_pub),
+            _to_bytes(sender_ecdh_pub),
+            _to_bytes(receiver_ecdh_pub),
+            _to_bytes(pq_ciphertext)
+        ]
+        # Length-prefixed canonical serialization
+        serialized = bytearray()
+        for el in elements:
+            serialized.extend(len(el).to_bytes(4, 'big'))
+            serialized.extend(el)
+        return hashlib.sha3_512(bytes(serialized)).digest()
+    
+    class HybridKeyCombiner:
+        """
+        Domain-separated hybrid key combiner.
+        Derives cryptographic keys and chaotic seeds from combined secrets.
+        """
+    
+        @staticmethod
+        def combine(
+            k_ecdh: bytes,
+            k_pq: bytes,
+            salt: bytes = b"MedPQC-Salt-v2.1",
+            context: Optional[bytes] = None,
+            info: bytes = b"HybridImageKEM-v2.1"
+        ) -> Tuple[bytes, bytes, bytes]:
+            """
+            Derives domain-separated keys from length-encoded concatenation:
+              IKM = len(k_ecdh) || k_ecdh || len(k_pq) || k_pq
+            Returns: (k_aes [32 bytes], k_mac [32 bytes], okm [96 bytes])
+            """
+            if len(k_ecdh) != 32 or len(k_pq) != 32:
+                raise ValueError(
+                    f"Invalid shared secret lengths: ECDH={len(k_ecdh)}, PQ={len(k_pq)}. "
+                    "Expected exactly 32 bytes for each shared secret."
+                )
+    
+            # Length-encoded IKM to prevent boundary-shifting ambiguities
+            ikm = len(k_ecdh).to_bytes(4, 'big') + k_ecdh + len(k_pq).to_bytes(4, 'big') + k_pq
+            prk = hkdf_extract(salt, ikm)
+    
+            ctx = context if context is not None else info
+    
+            # Strict domain separation for each cryptographic primitive
+            k_aes   = hkdf_expand(prk, ctx + b"|aes-256-gcm-encryption", 32)
+            k_mac   = hkdf_expand(prk, ctx + b"|hmac-sha3-authentication", 32)
+            s_chaos = hkdf_expand(prk, ctx + b"|lorenz-chaotic-keystream", 32)
+    
+            okm = k_aes + k_mac + s_chaos
+            return k_aes, k_mac, okm
+    
+        @staticmethod
+        def derive_all_keys(
+            k_ecdh: bytes,
+            k_pq: bytes,
+            session_context: bytes,
+            salt: bytes = b"MedPQC-Salt-v2.1"
+        ) -> Tuple[bytes, bytes, bytes]:
+            """
+            Derives (k_aes [32B], k_mac [32B], s_chaos [32B]) with strict session context binding.
+            """
+            k_aes, k_mac, okm = HybridKeyCombiner.combine(
+                k_ecdh, k_pq, salt=salt, context=session_context
+            )
+            s_chaos = okm[64:96]
+            return k_aes, k_mac, s_chaos)
+============================== 1 failed in 3.49s ==============================

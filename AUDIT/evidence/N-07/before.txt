@@ -1,0 +1,214 @@
+=== Baseline Execution for N-07 (tag v2.4.0) ===
+Command: python -m pytest test_exploit_n07.py -v
+Exit Code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n07.py::test_no_broad_except_in_package FAILED [ 50%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n07.py::test_unexpected_runtime_error_not_converted_to_manifest_error FAILED [100%]
+
+================================== FAILURES ===================================
+_______________________ test_no_broad_except_in_package _______________________
+
+    def test_no_broad_except_in_package():
+        """N-07: medpqc package must contain zero broad except Exception/BaseException."""
+        pkg_dir = Path(medpqc.__file__).resolve().parent
+        repo_root = pkg_dir.parent
+        violations = []
+    
+        allowlist_file = repo_root / "AUDIT" / "broad_except_allowlist.yaml"
+        allowed_locs = set()
+        if allowlist_file.exists():
+            import yaml
+            data = yaml.safe_load(allowlist_file.read_text(encoding="utf-8")) or {}
+            allowed_locs = set(data.get("allowlist", []))
+    
+        for py_file in pkg_dir.rglob("*.py"):
+            rel_path = str(py_file.relative_to(repo_root)).replace("\\", "/")
+            tree = ast.parse(py_file.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ExceptHandler):
+                    if _catches_broad(node):
+                        loc = f"{rel_path}:{node.lineno}"
+                        if loc not in allowed_locs:
+                            violations.append(loc)
+    
+>       assert not violations, f"Found {len(violations)} broad exception handlers in medpqc:\n" + "\n".join(violations)
+E       AssertionError: Found 27 broad exception handlers in medpqc:
+E         medpqc/cipher/aead.py:120
+E         medpqc/cipher/engine.py:289
+E         medpqc/dicom/pacs.py:129
+E         medpqc/dicom/pacs.py:124
+E         medpqc/dicom/pacs.py:375
+E         medpqc/dicom/pacs.py:687
+E         medpqc/dicom/pacs.py:752
+E         medpqc/dicom/pacs.py:881
+E         medpqc/dicom/pacs.py:132
+E         medpqc/dicom/pacs.py:365
+E         medpqc/dicom/pacs.py:579
+E         medpqc/dicom/pacs.py:620
+E         medpqc/dicom/pacs.py:628
+E         medpqc/dicom/pacs.py:706
+E         medpqc/dicom/pacs.py:370
+E         medpqc/dicom/pacs.py:642
+E         medpqc/kem/auth.py:321
+E         medpqc/kem/auth.py:405
+E         medpqc/kem/auth.py:488
+E         medpqc/kem/auth.py:719
+E         medpqc/kem/auth.py:850
+E         medpqc/kem/rlwe.py:80
+E         medpqc/kem/rlwe.py:145
+E         medpqc/kem/rlwe.py:157
+E         medpqc/kem/rlwe.py:196
+E         medpqc/kem/rlwe.py:202
+E         medpqc/kem/rlwe.py:188
+E       assert not ['medpqc/cipher/aead.py:120', 'medpqc/cipher/engine.py:289', 'medpqc/dicom/pacs.py:129', 'medpqc/dicom/pacs.py:124', 'medpqc/dicom/pacs.py:375', 'medpqc/dicom/pacs.py:687', 'medpqc/dicom/pacs.py:752', 'medpqc/dicom/pacs.py:881', 'medpqc/dicom/pacs.py:132', 'medpqc/dicom/pacs.py:365', 'medpqc/dicom/pacs.py:579', 'medpqc/dicom/pacs.py:620', 'medpqc/dicom/pacs.py:628', 'medpqc/dicom/pacs.py:706', 'medpqc/dicom/pacs.py:370', 'medpqc/dicom/pacs.py:642', 'medpqc/kem/auth.py:321', 'medpqc/kem/auth.py:405', 'medpqc/kem/auth.py:488', 'medpqc/kem/auth.py:719', 'medpqc/kem/auth.py:850', 'medpqc/kem/rlwe.py:80', 'medpqc/kem/rlwe.py:145', 'medpqc/kem/rlwe.py:157', 'medpqc/kem/rlwe.py:196', 'medpqc/kem/rlwe.py:202', 'medpqc/kem/rlwe.py:188']
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n07.py:63: AssertionError
+________ test_unexpected_runtime_error_not_converted_to_manifest_error ________
+
+args = (b'MEDPQC\x00\x01{"aead":{"ciphertext":"MkrfR3UU5s974PnrLWgb7jdmehZyLtPQF97T55rLDkM/Le0tR1RV8LPzmUMGi67YrPNVfbUr/ciKvJ...MjIxMjQ2MDM4OTUyNTU5NDgzMDE2ODkyNDkxMDIAYBBMTxYAQ0FOQVJZLVBST0NFRFVSRS1ERVNDIA==","shape":[32,32],"version":"2.4.0"}',)
+kwargs = {}
+
+    def crashing_parse(*args, **kwargs):
+>       raise RuntimeError("Unexpected internal engine fault")
+E       RuntimeError: Unexpected internal engine fault
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n07.py:86: RuntimeError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001B57FB935C0>
+
+    def test_unexpected_runtime_error_not_converted_to_manifest_error(monkeypatch):
+        """N-07: Unexpected RuntimeError in parse_binary_envelope must propagate, not be caught as ManifestError."""
+        ds = create_synthetic_dicom(rows=32, cols=32)
+        key = b"K" * 32
+        site_key = SitePseudonymizationKey(b"S" * 32) if hasattr(SitePseudonymizationKey, "__init__") else b"S" * 32
+    
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            in_path = Path(tmp_dir) / "in.dcm"
+            enc_path = Path(tmp_dir) / "enc.dcm"
+            dec_path = Path(tmp_dir) / "dec.dcm"
+            ds.save_as(str(in_path))
+    
+            DICOMPACSEnvelope.encrypt_dicom_file(
+                input_dcm_path=str(in_path),
+                output_dcm_path=str(enc_path),
+                cipher=MedPQCCipher(key),
+                site_key=site_key,
+            )
+    
+            def crashing_parse(*args, **kwargs):
+                raise RuntimeError("Unexpected internal engine fault")
+    
+            monkeypatch.setattr(pacs_mod, "parse_binary_envelope", crashing_parse)
+    
+            # Baseline caught this in 'except Exception as e:' and raised ManifestError.
+            # In v2.5.0, unexpected RuntimeError must propagate.
+            with pytest.raises(RuntimeError, match="Unexpected internal engine fault"):
+                if hasattr(DICOMPACSEnvelope, "restore_dicom_file"):
+                    DICOMPACSEnvelope.restore_dicom_file(
+                        encrypted_dcm_path=str(enc_path),
+                        output_dcm_path=str(dec_path),
+                        cipher=MedPQCCipher(key),
+                        site_key=site_key,
+                    )
+                else:
+>                   DICOMPACSEnvelope.decrypt_dicom_file(
+                        encrypted_input_path=str(enc_path),
+                        output_dcm_path=str(dec_path),
+                        cipher=MedPQCCipher(key),
+                        source=pacs_mod.ManifestSource.EMBEDDED,
+                        site_key=site_key,
+                    )
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n07.py:101: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'medpqc.dicom.pacs.DICOMPACSEnvelope'>
+encrypted_input_path = '/c/\Users\\MUZAMM~1\\AppData\\Local\\Temp\\tmpbwq9qivy\\enc.dcm'
+output_dcm_path = '/c/\Users\\MUZAMM~1\\AppData\\Local\\Temp\\tmpbwq9qivy\\dec.dcm'
+cipher = <medpqc.cipher.engine.MedPQCCipher object at 0x000001B57FDE8A50>
+source = <ManifestSource.EMBEDDED: 'embedded'>, original_template_dcm = None
+site_key = <medpqc.dicom.pacs.SitePseudonymizationKey object at 0x000001B57FE042F0>
+
+    @classmethod
+    def decrypt_dicom_file(
+        cls,
+        encrypted_input_path: str,
+        output_dcm_path: str,
+        cipher: MedPQCCipher,
+        source: ManifestSource,
+        original_template_dcm: str | None = None,
+        site_key: SitePseudonymizationKey | bytes | None = None,
+    ) -> np.ndarray:
+        """
+        Decrypts an encrypted DICOM envelope (either self-contained .dcm or .pqc.json)
+        and restores the exact original DICOM image and original patient metadata.
+        Strictly validates dataset hash and AAD metadata to prevent header tampering.
+        """
+        source_enum = ManifestSource(source) if isinstance(source, str) else source
+        data = None
+        ds_source = None
+    
+        if source_enum == ManifestSource.EMBEDDED:
+            # Strictly require embedded DICOM private tag; do NOT fall back to sidecar
+            if not encrypted_input_path.lower().endswith(".dcm") or not HAS_PYDICOM:
+                raise ManifestError("EMBEDDED source specified but input file is not a readable DICOM container.")
+            import pydicom
+    
+            try:
+                ds_source = pydicom.dcmread(encrypted_input_path)
+            except Exception as e:
+                raise ManifestError(f"Failed to read DICOM container: {e}")
+    
+            if PRIVATE_PAYLOAD_TAG not in ds_source:
+                raise ManifestError("Embedded manifest tag (0x0029, 0x1010) not found in DICOM object.")
+            raw_manifest = ds_source[PRIVATE_PAYLOAD_TAG].value.rstrip(b"\x00")
+            try:
+                data = parse_binary_envelope(raw_manifest)
+            except Exception as e:
+>               raise ManifestError(f"Embedded manifest is corrupt or malformed: {e}")
+E               medpqc.dicom.pacs.ManifestError: Embedded manifest is corrupt or malformed: Unexpected internal engine fault
+
+..\medpqc\medpqc\dicom\pacs.py:629: ManifestError
+=========================== short test summary info ===========================
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n07.py::test_no_broad_except_in_package - AssertionError: Found 27 broad exception handlers in medpqc:
+  medpqc/cipher/aead.py:120
+  medpqc/cipher/engine.py:289
+  medpqc/dicom/pacs.py:129
+  medpqc/dicom/pacs.py:124
+  medpqc/dicom/pacs.py:375
+  medpqc/dicom/pacs.py:687
+  medpqc/dicom/pacs.py:752
+  medpqc/dicom/pacs.py:881
+  medpqc/dicom/pacs.py:132
+  medpqc/dicom/pacs.py:365
+  medpqc/dicom/pacs.py:579
+  medpqc/dicom/pacs.py:620
+  medpqc/dicom/pacs.py:628
+  medpqc/dicom/pacs.py:706
+  medpqc/dicom/pacs.py:370
+  medpqc/dicom/pacs.py:642
+  medpqc/kem/auth.py:321
+  medpqc/kem/auth.py:405
+  medpqc/kem/auth.py:488
+  medpqc/kem/auth.py:719
+  medpqc/kem/auth.py:850
+  medpqc/kem/rlwe.py:80
+  medpqc/kem/rlwe.py:145
+  medpqc/kem/rlwe.py:157
+  medpqc/kem/rlwe.py:196
+  medpqc/kem/rlwe.py:202
+  medpqc/kem/rlwe.py:188
+assert not ['medpqc/cipher/aead.py:120', 'medpqc/cipher/engine.py:289', 'medpqc/dicom/pacs.py:129', 'medpqc/dicom/pacs.py:124', 'medpqc/dicom/pacs.py:375', 'medpqc/dicom/pacs.py:687', 'medpqc/dicom/pacs.py:752', 'medpqc/dicom/pacs.py:881', 'medpqc/dicom/pacs.py:132', 'medpqc/dicom/pacs.py:365', 'medpqc/dicom/pacs.py:579', 'medpqc/dicom/pacs.py:620', 'medpqc/dicom/pacs.py:628', 'medpqc/dicom/pacs.py:706', 'medpqc/dicom/pacs.py:370', 'medpqc/dicom/pacs.py:642', 'medpqc/kem/auth.py:321', 'medpqc/kem/auth.py:405', 'medpqc/kem/auth.py:488', 'medpqc/kem/auth.py:719', 'medpqc/kem/auth.py:850', 'medpqc/kem/rlwe.py:80', 'medpqc/kem/rlwe.py:145', 'medpqc/kem/rlwe.py:157', 'medpqc/kem/rlwe.py:196', 'medpqc/kem/rlwe.py:202', 'medpqc/kem/rlwe.py:188']
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n07.py::test_unexpected_runtime_error_not_converted_to_manifest_error - medpqc.dicom.pacs.ManifestError: Embedded manifest is corrupt or malformed: Unexpected internal engine fault
+============================== 2 failed in 2.12s ==============================

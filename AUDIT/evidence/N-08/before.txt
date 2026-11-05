@@ -1,0 +1,226 @@
+=== Baseline Execution for N-08 (tag v2.4.0) ===
+Command: python -m pytest test_exploit_n08.py -v
+Exit Code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 3 items
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n08.py::test_unsupported_dicom_error_defined FAILED [ 33%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n08.py::test_encapsulated_jpeg_raises_unsupported_dicom_error FAILED [ 66%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n08.py::test_dicom_encrypted_object_spec_exists FAILED [100%]
+
+================================== FAILURES ===================================
+____________________ test_unsupported_dicom_error_defined _____________________
+
+    def test_unsupported_dicom_error_defined():
+        """N-08: UnsupportedDICOMError must be exported from medpqc.dicom.pacs."""
+>       assert hasattr(pacs_mod, "UnsupportedDICOMError"), "UnsupportedDICOMError must be defined in medpqc.dicom.pacs"
+E       AssertionError: UnsupportedDICOMError must be defined in medpqc.dicom.pacs
+E       assert False
+E        +  where False = hasattr(pacs_mod, 'UnsupportedDICOMError')
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n08.py:28: AssertionError
+____________ test_encapsulated_jpeg_raises_unsupported_dicom_error ____________
+
+tag = (7FE0,0010)
+
+    @contextmanager
+    def tag_in_exception(tag: "BaseTag") -> Iterator[None]:
+        """Use `tag` within a context.
+    
+        Used to include the tag details in the traceback message when an exception
+        is raised within the context.
+    
+        Parameters
+        ----------
+        tag : BaseTag
+            The tag to use in the context.
+        """
+        try:
+>           yield
+
+/home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\tag.py:29: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\filewriter.py:826: in write_dataset
+    write_data_element(fp, get_item(tag), dataset_encoding)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+fp = <pydicom.filebase.DicomFileLike object at 0x000001C9BCC1C1A0>
+elem = (7FE0,0010) Pixel Data                          OB: Array of 2048 elements
+encodings = ['iso8859']
+
+    def write_data_element(
+        fp: DicomIO,
+        elem: DataElement | RawDataElement,
+        encodings: str | list[str] | None = None,
+    ) -> None:
+        """Write the data_element to file fp according to
+        dicom media storage rules.
+        """
+        # Write element's tag
+        fp.write_tag(elem.tag)
+    
+        # write into a buffer to avoid seeking back which can be expansive
+        buffer = DicomBytesIO()
+        buffer.is_little_endian = fp.is_little_endian
+        buffer.is_implicit_VR = fp.is_implicit_VR
+    
+        vr: str | None = elem.VR
+        if not fp.is_implicit_VR and vr and len(vr) != 2:
+            msg = (
+                f"Cannot write ambiguous VR of '{vr}' for data element with "
+                f"tag {elem.tag!r}.\nSet the correct VR before "
+                f"writing, or use an implicit VR transfer syntax"
+            )
+            raise ValueError(msg)
+    
+        if elem.is_raw:
+            elem = cast(RawDataElement, elem)
+            # raw data element values can be written as they are
+            buffer.write(cast(bytes, elem.value))
+            is_undefined_length = elem.length == 0xFFFFFFFF
+        else:
+            elem = cast(DataElement, elem)
+            if vr not in writers:
+                raise NotImplementedError(
+                    f"write_data_element: unknown Value Representation '{vr}'"
+                )
+    
+            encodings = encodings or [default_encoding]
+            encodings = convert_encodings(encodings)
+            fn, param = writers[cast(VR, vr)]
+            is_undefined_length = elem.is_undefined_length
+            if not elem.is_empty:
+                if vr in CUSTOMIZABLE_CHARSET_VR or vr == VR.SQ:
+                    fn(buffer, elem, encodings=encodings)  # type: ignore[operator]
+                else:
+                    # Many numeric types use the same writer but with
+                    # numeric format parameter
+                    if param is not None:
+                        fn(buffer, elem, param)  # type: ignore[operator]
+                    elif not elem.is_buffered:
+                        # defer writing a buffered value until after we have written the
+                        # tag and length in the file
+                        fn(buffer, elem)  # type: ignore[operator]
+    
+        # valid pixel data with undefined length shall contain encapsulated
+        # data, e.g. sequence items - raise ValueError otherwise (see #238)
+        if is_undefined_length and elem.tag == 0x7FE00010:
+            if elem.is_buffered:
+                value = cast(BufferedIOBase, elem.value)
+                with reset_buffer_position(value):
+                    pixel_data_bytes = value.read(4)
+            else:
+                pixel_data_bytes = cast(bytes, elem.value)[:4]
+    
+            # Big endian encapsulation is non-conformant
+            tag = b"\xFE\xFF\x00\xE0" if fp.is_little_endian else b"\xFF\xFE\xE0\x00"
+            if not pixel_data_bytes.startswith(tag):
+>               raise ValueError(
+                    "The (7FE0,0010) 'Pixel Data' element value hasn't been "
+                    "encapsulated as required for a compressed transfer syntax - "
+                    "see pydicom.encaps.encapsulate() for more information"
+                )
+E               ValueError: The (7FE0,0010) 'Pixel Data' element value hasn't been encapsulated as required for a compressed transfer syntax - see pydicom.encaps.encapsulate() for more information
+
+/home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\filewriter.py:686: ValueError
+
+The above exception was the direct cause of the following exception:
+
+    def test_encapsulated_jpeg_raises_unsupported_dicom_error():
+        """N-08: Encapsulated JPEG transfer syntax must raise typed UnsupportedDICOMError."""
+        ds = create_synthetic_dicom(rows=32, cols=32)
+        ds.file_meta.TransferSyntaxUID = "1.2.840.10008.1.2.4.50"  # JPEG Baseline
+    
+        key = b"K" * 32
+        site_key = SitePseudonymizationKey(b"S" * 32) if hasattr(SitePseudonymizationKey, "__init__") else b"S" * 32
+        err_cls = getattr(pacs_mod, "UnsupportedDICOMError", Exception)
+    
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            in_path = Path(tmp_dir) / "jpeg.dcm"
+            out_path = Path(tmp_dir) / "out.dcm"
+>           ds.save_as(str(in_path))
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n08.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\dataset.py:2642: in save_as
+    pydicom.dcmwrite(
+/home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\filewriter.py:1455: in dcmwrite
+    write_dataset(fp, dataset)
+/home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\filewriter.py:825: in write_dataset
+    with tag_in_exception(tag):
+         ^^^^^^^^^^^^^^^^^^^^^
+/usr/bin\Lib\contextlib.py:162: in __exit__
+    self.gen.throw(value)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+tag = (7FE0,0010)
+
+    @contextmanager
+    def tag_in_exception(tag: "BaseTag") -> Iterator[None]:
+        """Use `tag` within a context.
+    
+        Used to include the tag details in the traceback message when an exception
+        is raised within the context.
+    
+        Parameters
+        ----------
+        tag : BaseTag
+            The tag to use in the context.
+        """
+        try:
+            yield
+        except Exception as exc:
+            stack_trace = traceback.format_exc()
+            msg = f"With tag {tag} got exception: {exc}\n{stack_trace}"
+>           raise type(exc)(msg) from exc
+E           ValueError: With tag (7FE0,0010) got exception: The (7FE0,0010) 'Pixel Data' element value hasn't been encapsulated as required for a compressed transfer syntax - see pydicom.encaps.encapsulate() for more information
+E           Traceback (most recent call last):
+E             File "/home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\tag.py", line 29, in tag_in_exception
+E               yield
+E             File "/home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\filewriter.py", line 826, in write_dataset
+E               write_data_element(fp, get_item(tag), dataset_encoding)
+E               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E             File "/home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\filewriter.py", line 686, in write_data_element
+E               raise ValueError(
+E               ...<3 lines>...
+E               )
+E           ValueError: The (7FE0,0010) 'Pixel Data' element value hasn't been encapsulated as required for a compressed transfer syntax - see pydicom.encaps.encapsulate() for more information
+
+/home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\tag.py:33: ValueError
+___________________ test_dicom_encrypted_object_spec_exists ___________________
+
+    def test_dicom_encrypted_object_spec_exists():
+        """N-08: docs/DICOM_ENCRYPTED_OBJECT_SPECIFICATION.md must exist and document format matrix."""
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        spec_path = repo_root / "docs" / "DICOM_ENCRYPTED_OBJECT_SPECIFICATION.md"
+        assert spec_path.exists(), "docs/DICOM_ENCRYPTED_OBJECT_SPECIFICATION.md must exist"
+        content = spec_path.read_text(encoding="utf-8")
+>       assert "Format Matrix" in content or "Matrix" in content
+E       assert ('Format Matrix' in '# MedPQC Encrypted DICOM PACS Object Specification (v2.2)\n\n**Document**: Encrypted DICOM Container & PACS Envelope Specification  \n**Standard Compliance**: DICOM PS 3.10, PS 3.12, PS 3.15 Annex E  \n**Authors**: Muhammad Khubaib Ahmad, Muzammil Shadab (INFERENCE Lab)  \n**Date**: November 2026  \n\n---\n\n## 1. Overview and Architecture\n\nThe MedPQC Encrypted DICOM Object represents a dual-container medical imaging file formatted in strict accordance with the DICOM Part 10 file format standard. It satisfies two concurrent operational requirements:\n\n1. **PACS Interoperability**: Standard PACS storage archives, Vendor Neutral Archives (VNAs), and DICOM viewers can ingest, route, index, and render the object without crashing or reporting corrupted byte encodings.\n2. **Cryptographic Confidentiality**: Complete image pixel data and Protected Health Information (PHI) are encrypted under standards-conformant post-quantum hybrid keys (ML-KEM-768 + P-256 + AES-256-GCM), with all retained routing headers bound to AEAD integrity tags.\n\n---\n\n## 2. Tag Layout & Data Elements\n\n| Tag | Keyword | VR | Description & Encrypted Handling |\n| :--- | :--- | :--- | :--- |\n| `(0x0008, 0x0016)` | SOPClassUID | UI | Retained intact; bound into AES-256-GCM AAD. |\n| `(0x0008, 0x0018)` | SOPInstanceUID | UI | Retained intact; bound into AES-256-GCM AAD. |\n| `(0x0008, 0x0060)` | Modality | CS | Retained intact (e.g. `"CT"`, `"MR"`); bound into AAD. |\n| `(0x0010, 0x0010)` | PatientName | PN | Scrubbed to `"ANONYMIZED^MEDPQC"`; plaintext encrypted in private tag. |\n| `(0x0010, 0x0020)` | PatientID | LO | Pseudonymized to `"MEDPQC-PSN-<hex>"`; plaintext encrypted in private tag. |\n| `(0x0028, 0x0010)` | Rows | US | Retained intact; bound into AAD. |\n| `(0x0028, 0x0011)` | Columns | US | Retained intact; bound into AAD. |\n| `(0x0028, 0x0100)` | BitsAllocated | US | Retained intact (8, 16); bound into AAD. |\n| `(0x0028, 0x0101)` | BitsStored | US | Retained intact; bound into AAD. |\n| `(0x0028, 0x0103)` | PixelRepresentation | US | Retained intact (0 = unsigned, 1 = signed); bound into AAD. |\n| `(0x0029, 0x0010)` | PrivateCreator | LO | Set to `"MEDPQC_SECURITY_V2.2"`. |\n| `(0x0029, 0x1010)` | PrivatePayload | OB | Complete self-contained cryptographic manifest and untruncated ciphertext. |\n| `(0x7FE0, 0x0010)` | PixelData | OB/OW | Deterministic synthetic noise raster matching exact original dimensions. |\n\n---\n\n## 3. PixelData Non-Truncation Architecture (SEC-03)\n\nIn early cryptographic medical prototypes, storing ciphertexts inside standard DICOM files frequently resulted in byte truncation because symmetric encryption bundles (ciphertext + IV + auth tag + framing headers) are larger than raw pixel arrays. Truncating ciphertext destroys cryptographic integrity.\n\nMedPQC v2.2 completely eliminates ciphertext truncation:\n1. **Private Container Ingestion**: The full, untruncated authenticated ciphertext bundle is preserved exclusively inside Private Tag `(0x0029, 0x1010)`.\n2. **Synthetic Noise Raster**: `ds.PixelData` is populated with a high-entropy synthetic noise raster matching the exact uncompressed byte length:\n   $$L_{\\text{raw}} = \\text{Rows} \\times \\text{Columns} \\times \\text{SamplesPerPixel} \\times \\left(\\frac{\\text{BitsAllocated}}{8}\\right)$$\n   The noise stream is generated deterministically via `ChaoticEntropySponge` seeded by the first 32 bytes of the image ciphertext.\n3. **PACS Viewing Safety**: When opened in standard PACS viewers (e.g., Horos, OsiriX, Orthanc, MicroDicom), the image displays uniform high-entropy visual noise without throwing dimension mismatch or unexpected EOF errors.\n4. **Lossless Recovery**: Authorized MedPQC decoders extract the full untruncated ciphertext from Private Tag `(0x0029, 0x1010)` and decrypt with full cryptographic integrity ($\\text{MSE} \\equiv 0.0$).\n\n---\n\n## 4. Protected Health Information (PHI) De-Identification (SEC-04, SEC-05)\n\n### 4.1 Recursive Sequence Scrubbing\nIn accordance with DICOM PS 3.15 Annex E de-identification profiles:\n- The de-identification engine recursively traverses all top-level attributes and nested `Sequence` (`VR == \'SQ\'`) elements (such as `RequestAttributesSequence`, `SpecimenDescriptionSequence`, and `ProcedureCodeSequence`).\n- All direct and indirect patient identifiers are extracted and preserved in the encrypted PHI payload.\n- In the public DICOM dataset, identified fields are replaced or scrubbed:\n  - `PatientName`: `"ANONYMIZED^MEDPQC"`\n  - `PatientID`: Keyed salted pseudonymized string `MEDPQC-PSN-<hmac16>`\n  - `InstitutionName`: `"PROTECTED_HEALTHCARE_FACILITY"`\n  - `PatientBirthDate`, `PatientBirthTime`, `PatientAddress`, `PatientTelephoneNumbers`: Cleared to empty strings.\n\n### 4.2 Keyed Salted Pseudonymization\nPseudonymization uses HMAC-SHA256 keyed with a mandatory site salt:\n$$\\text{PSN} = \\text{HMAC-SHA256}(\\text{site\\_salt}, \\text{PatientID})[0:16]$$\nThe framework mandates a secret site salt of at least 16 bytes (`validate_site_salt`), preventing rainbow-table and correlation attacks across healthcare institutions.\n\n---\n\n## 5. Private Tag Cryptographic Manifest Schema\n\nThe JSON payload inside Private Tag `(0x0029, 0x1010)` conforms to the following schema:\n\n```json\n{\n  "version": "2.2.0",\n  "shape": [512, 512],\n  "dtype": "int16",\n  "n_bytes": 524288,\n  "retained_headers": {\n    "BitsAllocated": "16",\n    "BitsStored": "16",\n    "Columns": "512",\n    "Modality": "CT",\n    "PixelRepresentation": "1",\n    "Rows": "512",\n    "SOPClassUID": "1.2.840.10008.5.1.4.1.1.2",\n    "SOPInstanceUID": "1.2.3.4.5.6.7.8.9"\n  },\n  "aead": {\n    "nonce": "<base64 96-bit IV>",\n    "ciphertext": "<base64 untruncated ciphertext>",\n    "gcm_tag": "<base64 128-bit tag>",\n    "outer_mac": "<base64 256-bit HMAC-SHA3 tag>"\n  },\n  "kem_ciphertext": "<base64 1088-byte ML-KEM-768 ciphertext>",\n  "encrypted_phi": "<base64 encrypted PHI JSON metadata>",\n  "handshake_payload": {\n    "protocol_version": "MedPQC-v2.2",\n    "suite_id": "ECDH-P256+ML-KEM-768+Ed25519+AES-256-GCM",\n    "sender_id": "hospital-a-pacs",\n    "receiver_id": "hospital-b-pacs",\n    "session_id": "<base64 16-byte sid>",\n    "bob_id_pub": "<base64 Ed25519 public key>",\n    "ecdh_pub": "<base64 P-256 public key>",\n    "signature": "<base64 Ed25519 response signature>",\n    "timestamp": 1730420000.0000\n  }\n}\n```\n' or 'Matrix' in '# MedPQC Encrypted DICOM PACS Object Specification (v2.2)\n\n**Document**: Encrypted DICOM Container & PACS Envelope Specification  \n**Standard Compliance**: DICOM PS 3.10, PS 3.12, PS 3.15 Annex E  \n**Authors**: Muhammad Khubaib Ahmad, Muzammil Shadab (INFERENCE Lab)  \n**Date**: November 2026  \n\n---\n\n## 1. Overview and Architecture\n\nThe MedPQC Encrypted DICOM Object represents a dual-container medical imaging file formatted in strict accordance with the DICOM Part 10 file format standard. It satisfies two concurrent operational requirements:\n\n1. **PACS Interoperability**: Standard PACS storage archives, Vendor Neutral Archives (VNAs), and DICOM viewers can ingest, route, index, and render the object without crashing or reporting corrupted byte encodings.\n2. **Cryptographic Confidentiality**: Complete image pixel data and Protected Health Information (PHI) are encrypted under standards-conformant post-quantum hybrid keys (ML-KEM-768 + P-256 + AES-256-GCM), with all retained routing headers bound to AEAD integrity tags.\n\n---\n\n## 2. Tag Layout & Data Elements\n\n| Tag | Keyword | VR | Description & Encrypted Handling |\n| :--- | :--- | :--- | :--- |\n| `(0x0008, 0x0016)` | SOPClassUID | UI | Retained intact; bound into AES-256-GCM AAD. |\n| `(0x0008, 0x0018)` | SOPInstanceUID | UI | Retained intact; bound into AES-256-GCM AAD. |\n| `(0x0008, 0x0060)` | Modality | CS | Retained intact (e.g. `"CT"`, `"MR"`); bound into AAD. |\n| `(0x0010, 0x0010)` | PatientName | PN | Scrubbed to `"ANONYMIZED^MEDPQC"`; plaintext encrypted in private tag. |\n| `(0x0010, 0x0020)` | PatientID | LO | Pseudonymized to `"MEDPQC-PSN-<hex>"`; plaintext encrypted in private tag. |\n| `(0x0028, 0x0010)` | Rows | US | Retained intact; bound into AAD. |\n| `(0x0028, 0x0011)` | Columns | US | Retained intact; bound into AAD. |\n| `(0x0028, 0x0100)` | BitsAllocated | US | Retained intact (8, 16); bound into AAD. |\n| `(0x0028, 0x0101)` | BitsStored | US | Retained intact; bound into AAD. |\n| `(0x0028, 0x0103)` | PixelRepresentation | US | Retained intact (0 = unsigned, 1 = signed); bound into AAD. |\n| `(0x0029, 0x0010)` | PrivateCreator | LO | Set to `"MEDPQC_SECURITY_V2.2"`. |\n| `(0x0029, 0x1010)` | PrivatePayload | OB | Complete self-contained cryptographic manifest and untruncated ciphertext. |\n| `(0x7FE0, 0x0010)` | PixelData | OB/OW | Deterministic synthetic noise raster matching exact original dimensions. |\n\n---\n\n## 3. PixelData Non-Truncation Architecture (SEC-03)\n\nIn early cryptographic medical prototypes, storing ciphertexts inside standard DICOM files frequently resulted in byte truncation because symmetric encryption bundles (ciphertext + IV + auth tag + framing headers) are larger than raw pixel arrays. Truncating ciphertext destroys cryptographic integrity.\n\nMedPQC v2.2 completely eliminates ciphertext truncation:\n1. **Private Container Ingestion**: The full, untruncated authenticated ciphertext bundle is preserved exclusively inside Private Tag `(0x0029, 0x1010)`.\n2. **Synthetic Noise Raster**: `ds.PixelData` is populated with a high-entropy synthetic noise raster matching the exact uncompressed byte length:\n   $$L_{\\text{raw}} = \\text{Rows} \\times \\text{Columns} \\times \\text{SamplesPerPixel} \\times \\left(\\frac{\\text{BitsAllocated}}{8}\\right)$$\n   The noise stream is generated deterministically via `ChaoticEntropySponge` seeded by the first 32 bytes of the image ciphertext.\n3. **PACS Viewing Safety**: When opened in standard PACS viewers (e.g., Horos, OsiriX, Orthanc, MicroDicom), the image displays uniform high-entropy visual noise without throwing dimension mismatch or unexpected EOF errors.\n4. **Lossless Recovery**: Authorized MedPQC decoders extract the full untruncated ciphertext from Private Tag `(0x0029, 0x1010)` and decrypt with full cryptographic integrity ($\\text{MSE} \\equiv 0.0$).\n\n---\n\n## 4. Protected Health Information (PHI) De-Identification (SEC-04, SEC-05)\n\n### 4.1 Recursive Sequence Scrubbing\nIn accordance with DICOM PS 3.15 Annex E de-identification profiles:\n- The de-identification engine recursively traverses all top-level attributes and nested `Sequence` (`VR == \'SQ\'`) elements (such as `RequestAttributesSequence`, `SpecimenDescriptionSequence`, and `ProcedureCodeSequence`).\n- All direct and indirect patient identifiers are extracted and preserved in the encrypted PHI payload.\n- In the public DICOM dataset, identified fields are replaced or scrubbed:\n  - `PatientName`: `"ANONYMIZED^MEDPQC"`\n  - `PatientID`: Keyed salted pseudonymized string `MEDPQC-PSN-<hmac16>`\n  - `InstitutionName`: `"PROTECTED_HEALTHCARE_FACILITY"`\n  - `PatientBirthDate`, `PatientBirthTime`, `PatientAddress`, `PatientTelephoneNumbers`: Cleared to empty strings.\n\n### 4.2 Keyed Salted Pseudonymization\nPseudonymization uses HMAC-SHA256 keyed with a mandatory site salt:\n$$\\text{PSN} = \\text{HMAC-SHA256}(\\text{site\\_salt}, \\text{PatientID})[0:16]$$\nThe framework mandates a secret site salt of at least 16 bytes (`validate_site_salt`), preventing rainbow-table and correlation attacks across healthcare institutions.\n\n---\n\n## 5. Private Tag Cryptographic Manifest Schema\n\nThe JSON payload inside Private Tag `(0x0029, 0x1010)` conforms to the following schema:\n\n```json\n{\n  "version": "2.2.0",\n  "shape": [512, 512],\n  "dtype": "int16",\n  "n_bytes": 524288,\n  "retained_headers": {\n    "BitsAllocated": "16",\n    "BitsStored": "16",\n    "Columns": "512",\n    "Modality": "CT",\n    "PixelRepresentation": "1",\n    "Rows": "512",\n    "SOPClassUID": "1.2.840.10008.5.1.4.1.1.2",\n    "SOPInstanceUID": "1.2.3.4.5.6.7.8.9"\n  },\n  "aead": {\n    "nonce": "<base64 96-bit IV>",\n    "ciphertext": "<base64 untruncated ciphertext>",\n    "gcm_tag": "<base64 128-bit tag>",\n    "outer_mac": "<base64 256-bit HMAC-SHA3 tag>"\n  },\n  "kem_ciphertext": "<base64 1088-byte ML-KEM-768 ciphertext>",\n  "encrypted_phi": "<base64 encrypted PHI JSON metadata>",\n  "handshake_payload": {\n    "protocol_version": "MedPQC-v2.2",\n    "suite_id": "ECDH-P256+ML-KEM-768+Ed25519+AES-256-GCM",\n    "sender_id": "hospital-a-pacs",\n    "receiver_id": "hospital-b-pacs",\n    "session_id": "<base64 16-byte sid>",\n    "bob_id_pub": "<base64 Ed25519 public key>",\n    "ecdh_pub": "<base64 P-256 public key>",\n    "signature": "<base64 Ed25519 response signature>",\n    "timestamp": 1730420000.0000\n  }\n}\n```\n')
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n08.py:60: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n08.py::test_unsupported_dicom_error_defined - AssertionError: UnsupportedDICOMError must be defined in medpqc.dicom.pacs
+assert False
+ +  where False = hasattr(pacs_mod, 'UnsupportedDICOMError')
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n08.py::test_encapsulated_jpeg_raises_unsupported_dicom_error - ValueError: With tag (7FE0,0010) got exception: The (7FE0,0010) 'Pixel Data' element value hasn't been encapsulated as required for a compressed transfer syntax - see pydicom.encaps.encapsulate() for more information
+Traceback (most recent call last):
+  File "/home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\tag.py", line 29, in tag_in_exception
+    yield
+  File "/home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\filewriter.py", line 826, in write_dataset
+    write_data_element(fp, get_item(tag), dataset_encoding)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\filewriter.py", line 686, in write_data_element
+    raise ValueError(
+    ...<3 lines>...
+    )
+ValueError: The (7FE0,0010) 'Pixel Data' element value hasn't been encapsulated as required for a compressed transfer syntax - see pydicom.encaps.encapsulate() for more information
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n08.py::test_dicom_encrypted_object_spec_exists - assert ('Format Matrix' in '# MedPQC Encrypted DICOM PACS Object Specification (v2.2)\n\n**Document**: Encrypted DICOM Container & PACS Envelope Specification  \n**Standard Compliance**: DICOM PS 3.10, PS 3.12, PS 3.15 Annex E  \n**Authors**: Muhammad Khubaib Ahmad, Muzammil Shadab (INFERENCE Lab)  \n**Date**: November 2026  \n\n---\n\n## 1. Overview and Architecture\n\nThe MedPQC Encrypted DICOM Object represents a dual-container medical imaging file formatted in strict accordance with the DICOM Part 10 file format standard. It satisfies two concurrent operational requirements:\n\n1. **PACS Interoperability**: Standard PACS storage archives, Vendor Neutral Archives (VNAs), and DICOM viewers can ingest, route, index, and render the object without crashing or reporting corrupted byte encodings.\n2. **Cryptographic Confidentiality**: Complete image pixel data and Protected Health Information (PHI) are encrypted under standards-conformant post-quantum hybrid keys (ML-KEM-768 + P-256 + AES-256-GCM), with all retained routing headers bound to AEAD integrity tags.\n\n---\n\n## 2. Tag Layout & Data Elements\n\n| Tag | Keyword | VR | Description & Encrypted Handling |\n| :--- | :--- | :--- | :--- |\n| `(0x0008, 0x0016)` | SOPClassUID | UI | Retained intact; bound into AES-256-GCM AAD. |\n| `(0x0008, 0x0018)` | SOPInstanceUID | UI | Retained intact; bound into AES-256-GCM AAD. |\n| `(0x0008, 0x0060)` | Modality | CS | Retained intact (e.g. `"CT"`, `"MR"`); bound into AAD. |\n| `(0x0010, 0x0010)` | PatientName | PN | Scrubbed to `"ANONYMIZED^MEDPQC"`; plaintext encrypted in private tag. |\n| `(0x0010, 0x0020)` | PatientID | LO | Pseudonymized to `"MEDPQC-PSN-<hex>"`; plaintext encrypted in private tag. |\n| `(0x0028, 0x0010)` | Rows | US | Retained intact; bound into AAD. |\n| `(0x0028, 0x0011)` | Columns | US | Retained intact; bound into AAD. |\n| `(0x0028, 0x0100)` | BitsAllocated | US | Retained intact (8, 16); bound into AAD. |\n| `(0x0028, 0x0101)` | BitsStored | US | Retained intact; bound into AAD. |\n| `(0x0028, 0x0103)` | PixelRepresentation | US | Retained intact (0 = unsigned, 1 = signed); bound into AAD. |\n| `(0x0029, 0x0010)` | PrivateCreator | LO | Set to `"MEDPQC_SECURITY_V2.2"`. |\n| `(0x0029, 0x1010)` | PrivatePayload | OB | Complete self-contained cryptographic manifest and untruncated ciphertext. |\n| `(0x7FE0, 0x0010)` | PixelData | OB/OW | Deterministic synthetic noise raster matching exact original dimensions. |\n\n---\n\n## 3. PixelData Non-Truncation Architecture (SEC-03)\n\nIn early cryptographic medical prototypes, storing ciphertexts inside standard DICOM files frequently resulted in byte truncation because symmetric encryption bundles (ciphertext + IV + auth tag + framing headers) are larger than raw pixel arrays. Truncating ciphertext destroys cryptographic integrity.\n\nMedPQC v2.2 completely eliminates ciphertext truncation:\n1. **Private Container Ingestion**: The full, untruncated authenticated ciphertext bundle is preserved exclusively inside Private Tag `(0x0029, 0x1010)`.\n2. **Synthetic Noise Raster**: `ds.PixelData` is populated with a high-entropy synthetic noise raster matching the exact uncompressed byte length:\n   $$L_{\\text{raw}} = \\text{Rows} \\times \\text{Columns} \\times \\text{SamplesPerPixel} \\times \\left(\\frac{\\text{BitsAllocated}}{8}\\right)$$\n   The noise stream is generated deterministically via `ChaoticEntropySponge` seeded by the first 32 bytes of the image ciphertext.\n3. **PACS Viewing Safety**: When opened in standard PACS viewers (e.g., Horos, OsiriX, Orthanc, MicroDicom), the image displays uniform high-entropy visual noise without throwing dimension mismatch or unexpected EOF errors.\n4. **Lossless Recovery**: Authorized MedPQC decoders extract the full untruncated ciphertext from Private Tag `(0x0029, 0x1010)` and decrypt with full cryptographic integrity ($\\text{MSE} \\equiv 0.0$).\n\n---\n\n## 4. Protected Health Information (PHI) De-Identification (SEC-04, SEC-05)\n\n### 4.1 Recursive Sequence Scrubbing\nIn accordance with DICOM PS 3.15 Annex E de-identification profiles:\n- The de-identification engine recursively traverses all top-level attributes and nested `Sequence` (`VR == \'SQ\'`) elements (such as `RequestAttributesSequence`, `SpecimenDescriptionSequence`, and `ProcedureCodeSequence`).\n- All direct and indirect patient identifiers are extracted and preserved in the encrypted PHI payload.\n- In the public DICOM dataset, identified fields are replaced or scrubbed:\n  - `PatientName`: `"ANONYMIZED^MEDPQC"`\n  - `PatientID`: Keyed salted pseudonymized string `MEDPQC-PSN-<hmac16>`\n  - `InstitutionName`: `"PROTECTED_HEALTHCARE_FACILITY"`\n  - `PatientBirthDate`, `PatientBirthTime`, `PatientAddress`, `PatientTelephoneNumbers`: Cleared to empty strings.\n\n### 4.2 Keyed Salted Pseudonymization\nPseudonymization uses HMAC-SHA256 keyed with a mandatory site salt:\n$$\\text{PSN} = \\text{HMAC-SHA256}(\\text{site\\_salt}, \\text{PatientID})[0:16]$$\nThe framework mandates a secret site salt of at least 16 bytes (`validate_site_salt`), preventing rainbow-table and correlation attacks across healthcare institutions.\n\n---\n\n## 5. Private Tag Cryptographic Manifest Schema\n\nThe JSON payload inside Private Tag `(0x0029, 0x1010)` conforms to the following schema:\n\n```json\n{\n  "version": "2.2.0",\n  "shape": [512, 512],\n  "dtype": "int16",\n  "n_bytes": 524288,\n  "retained_headers": {\n    "BitsAllocated": "16",\n    "BitsStored": "16",\n    "Columns": "512",\n    "Modality": "CT",\n    "PixelRepresentation": "1",\n    "Rows": "512",\n    "SOPClassUID": "1.2.840.10008.5.1.4.1.1.2",\n    "SOPInstanceUID": "1.2.3.4.5.6.7.8.9"\n  },\n  "aead": {\n    "nonce": "<base64 96-bit IV>",\n    "ciphertext": "<base64 untruncated ciphertext>",\n    "gcm_tag": "<base64 128-bit tag>",\n    "outer_mac": "<base64 256-bit HMAC-SHA3 tag>"\n  },\n  "kem_ciphertext": "<base64 1088-byte ML-KEM-768 ciphertext>",\n  "encrypted_phi": "<base64 encrypted PHI JSON metadata>",\n  "handshake_payload": {\n    "protocol_version": "MedPQC-v2.2",\n    "suite_id": "ECDH-P256+ML-KEM-768+Ed25519+AES-256-GCM",\n    "sender_id": "hospital-a-pacs",\n    "receiver_id": "hospital-b-pacs",\n    "session_id": "<base64 16-byte sid>",\n    "bob_id_pub": "<base64 Ed25519 public key>",\n    "ecdh_pub": "<base64 P-256 public key>",\n    "signature": "<base64 Ed25519 response signature>",\n    "timestamp": 1730420000.0000\n  }\n}\n```\n' or 'Matrix' in '# MedPQC Encrypted DICOM PACS Object Specification (v2.2)\n\n**Document**: Encrypted DICOM Container & PACS Envelope Specification  \n**Standard Compliance**: DICOM PS 3.10, PS 3.12, PS 3.15 Annex E  \n**Authors**: Muhammad Khubaib Ahmad, Muzammil Shadab (INFERENCE Lab)  \n**Date**: November 2026  \n\n---\n\n## 1. Overview and Architecture\n\nThe MedPQC Encrypted DICOM Object represents a dual-container medical imaging file formatted in strict accordance with the DICOM Part 10 file format standard. It satisfies two concurrent operational requirements:\n\n1. **PACS Interoperability**: Standard PACS storage archives, Vendor Neutral Archives (VNAs), and DICOM viewers can ingest, route, index, and render the object without crashing or reporting corrupted byte encodings.\n2. **Cryptographic Confidentiality**: Complete image pixel data and Protected Health Information (PHI) are encrypted under standards-conformant post-quantum hybrid keys (ML-KEM-768 + P-256 + AES-256-GCM), with all retained routing headers bound to AEAD integrity tags.\n\n---\n\n## 2. Tag Layout & Data Elements\n\n| Tag | Keyword | VR | Description & Encrypted Handling |\n| :--- | :--- | :--- | :--- |\n| `(0x0008, 0x0016)` | SOPClassUID | UI | Retained intact; bound into AES-256-GCM AAD. |\n| `(0x0008, 0x0018)` | SOPInstanceUID | UI | Retained intact; bound into AES-256-GCM AAD. |\n| `(0x0008, 0x0060)` | Modality | CS | Retained intact (e.g. `"CT"`, `"MR"`); bound into AAD. |\n| `(0x0010, 0x0010)` | PatientName | PN | Scrubbed to `"ANONYMIZED^MEDPQC"`; plaintext encrypted in private tag. |\n| `(0x0010, 0x0020)` | PatientID | LO | Pseudonymized to `"MEDPQC-PSN-<hex>"`; plaintext encrypted in private tag. |\n| `(0x0028, 0x0010)` | Rows | US | Retained intact; bound into AAD. |\n| `(0x0028, 0x0011)` | Columns | US | Retained intact; bound into AAD. |\n| `(0x0028, 0x0100)` | BitsAllocated | US | Retained intact (8, 16); bound into AAD. |\n| `(0x0028, 0x0101)` | BitsStored | US | Retained intact; bound into AAD. |\n| `(0x0028, 0x0103)` | PixelRepresentation | US | Retained intact (0 = unsigned, 1 = signed); bound into AAD. |\n| `(0x0029, 0x0010)` | PrivateCreator | LO | Set to `"MEDPQC_SECURITY_V2.2"`. |\n| `(0x0029, 0x1010)` | PrivatePayload | OB | Complete self-contained cryptographic manifest and untruncated ciphertext. |\n| `(0x7FE0, 0x0010)` | PixelData | OB/OW | Deterministic synthetic noise raster matching exact original dimensions. |\n\n---\n\n## 3. PixelData Non-Truncation Architecture (SEC-03)\n\nIn early cryptographic medical prototypes, storing ciphertexts inside standard DICOM files frequently resulted in byte truncation because symmetric encryption bundles (ciphertext + IV + auth tag + framing headers) are larger than raw pixel arrays. Truncating ciphertext destroys cryptographic integrity.\n\nMedPQC v2.2 completely eliminates ciphertext truncation:\n1. **Private Container Ingestion**: The full, untruncated authenticated ciphertext bundle is preserved exclusively inside Private Tag `(0x0029, 0x1010)`.\n2. **Synthetic Noise Raster**: `ds.PixelData` is populated with a high-entropy synthetic noise raster matching the exact uncompressed byte length:\n   $$L_{\\text{raw}} = \\text{Rows} \\times \\text{Columns} \\times \\text{SamplesPerPixel} \\times \\left(\\frac{\\text{BitsAllocated}}{8}\\right)$$\n   The noise stream is generated deterministically via `ChaoticEntropySponge` seeded by the first 32 bytes of the image ciphertext.\n3. **PACS Viewing Safety**: When opened in standard PACS viewers (e.g., Horos, OsiriX, Orthanc, MicroDicom), the image displays uniform high-entropy visual noise without throwing dimension mismatch or unexpected EOF errors.\n4. **Lossless Recovery**: Authorized MedPQC decoders extract the full untruncated ciphertext from Private Tag `(0x0029, 0x1010)` and decrypt with full cryptographic integrity ($\\text{MSE} \\equiv 0.0$).\n\n---\n\n## 4. Protected Health Information (PHI) De-Identification (SEC-04, SEC-05)\n\n### 4.1 Recursive Sequence Scrubbing\nIn accordance with DICOM PS 3.15 Annex E de-identification profiles:\n- The de-identification engine recursively traverses all top-level attributes and nested `Sequence` (`VR == \'SQ\'`) elements (such as `RequestAttributesSequence`, `SpecimenDescriptionSequence`, and `ProcedureCodeSequence`).\n- All direct and indirect patient identifiers are extracted and preserved in the encrypted PHI payload.\n- In the public DICOM dataset, identified fields are replaced or scrubbed:\n  - `PatientName`: `"ANONYMIZED^MEDPQC"`\n  - `PatientID`: Keyed salted pseudonymized string `MEDPQC-PSN-<hmac16>`\n  - `InstitutionName`: `"PROTECTED_HEALTHCARE_FACILITY"`\n  - `PatientBirthDate`, `PatientBirthTime`, `PatientAddress`, `PatientTelephoneNumbers`: Cleared to empty strings.\n\n### 4.2 Keyed Salted Pseudonymization\nPseudonymization uses HMAC-SHA256 keyed with a mandatory site salt:\n$$\\text{PSN} = \\text{HMAC-SHA256}(\\text{site\\_salt}, \\text{PatientID})[0:16]$$\nThe framework mandates a secret site salt of at least 16 bytes (`validate_site_salt`), preventing rainbow-table and correlation attacks across healthcare institutions.\n\n---\n\n## 5. Private Tag Cryptographic Manifest Schema\n\nThe JSON payload inside Private Tag `(0x0029, 0x1010)` conforms to the following schema:\n\n```json\n{\n  "version": "2.2.0",\n  "shape": [512, 512],\n  "dtype": "int16",\n  "n_bytes": 524288,\n  "retained_headers": {\n    "BitsAllocated": "16",\n    "BitsStored": "16",\n    "Columns": "512",\n    "Modality": "CT",\n    "PixelRepresentation": "1",\n    "Rows": "512",\n    "SOPClassUID": "1.2.840.10008.5.1.4.1.1.2",\n    "SOPInstanceUID": "1.2.3.4.5.6.7.8.9"\n  },\n  "aead": {\n    "nonce": "<base64 96-bit IV>",\n    "ciphertext": "<base64 untruncated ciphertext>",\n    "gcm_tag": "<base64 128-bit tag>",\n    "outer_mac": "<base64 256-bit HMAC-SHA3 tag>"\n  },\n  "kem_ciphertext": "<base64 1088-byte ML-KEM-768 ciphertext>",\n  "encrypted_phi": "<base64 encrypted PHI JSON metadata>",\n  "handshake_payload": {\n    "protocol_version": "MedPQC-v2.2",\n    "suite_id": "ECDH-P256+ML-KEM-768+Ed25519+AES-256-GCM",\n    "sender_id": "hospital-a-pacs",\n    "receiver_id": "hospital-b-pacs",\n    "session_id": "<base64 16-byte sid>",\n    "bob_id_pub": "<base64 Ed25519 public key>",\n    "ecdh_pub": "<base64 P-256 public key>",\n    "signature": "<base64 Ed25519 response signature>",\n    "timestamp": 1730420000.0000\n  }\n}\n```\n')
+============================== 3 failed in 1.96s ==============================

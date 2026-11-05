@@ -6,26 +6,34 @@ Preserves 8-bit and 16-bit raw pixel data without dynamic range compression.
 """
 
 import os
+from typing import Any
+
 import numpy as np
-from typing import Tuple, Any
 
 try:
     import pydicom
+
     HAS_PYDICOM = True
-except ImportError:  # pragma: no cover
+except ImportError:  # pragma: no cover - justification: optional pydicom missing fallback
     HAS_PYDICOM = False
 
 try:
     import cv2
+
     HAS_CV2 = True
-except ImportError:  # pragma: no cover
+except ImportError:  # pragma: no cover - justification: optional cv2 missing fallback
     HAS_CV2 = False
+
+
+class UnsupportedDICOMError(ValueError):
+    """Raised when an unsupported or compressed transfer syntax is supplied."""
+
 
 class MedicalImageIO:
     """Handles medical image loading and saving preserving exact pixel depth."""
 
     @staticmethod
-    def load(file_path: str) -> Tuple[np.ndarray, Any]:
+    def load(file_path: str) -> tuple[np.ndarray, Any]:
         """
         Load an image file.
         Supports .dcm (DICOM), .png, .jpg, .tif, .bmp.
@@ -34,9 +42,19 @@ class MedicalImageIO:
         ext = os.path.splitext(file_path)[1].lower()
 
         if ext == ".dcm":
-            if not HAS_PYDICOM:  # pragma: no cover
+            if not HAS_PYDICOM:  # pragma: no cover - justification: optional pydicom missing fallback
                 raise ImportError("pydicom is required to read DICOM files: pip install pydicom")
             ds = pydicom.dcmread(file_path)
+            if hasattr(ds, "file_meta") and hasattr(ds.file_meta, "TransferSyntaxUID"):
+                ts_uid = str(ds.file_meta.TransferSyntaxUID)
+                if getattr(ds.file_meta.TransferSyntaxUID, "is_compressed", False) or ts_uid.startswith(
+                    "1.2.840.10008.1.2.4"
+                ):
+                    raise UnsupportedDICOMError(
+                        f"UNSUPPORTED_TRANSFER_SYNTAX: Compressed transfer syntax '{ts_uid}' detected. "
+                        "MedPQC requires uncompressed native pixel data (e.g., Explicit/Implicit VR Little Endian) "
+                        "to preserve exact bit-plane representations and Hounsfield unit fidelity."
+                    )
             pixel_array = ds.pixel_array
             return pixel_array, ds
 
@@ -48,19 +66,21 @@ class MedicalImageIO:
             # If 3-channel BGR, convert to RGB
             if img.ndim == 3 and img.shape[2] == 3:
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            return img, {'format': ext}
+            return img, {"format": ext}
 
-        raise RuntimeError("No suitable image reader installed (need pydicom or opencv).")  # pragma: no cover
+        raise RuntimeError(
+            "No suitable image reader installed (need pydicom or opencv)."
+        )  # pragma: no cover - justification: reader missing fallback
 
     @staticmethod
-    def save(file_path: str, pixel_array: np.ndarray, metadata: Any = None):
+    def save(file_path: str, pixel_array: np.ndarray, metadata: Any = None) -> None:
         """
         Save decrypted pixel array to file.
         """
         ext = os.path.splitext(file_path)[1].lower()
 
         if ext == ".dcm":
-            if not HAS_PYDICOM:  # pragma: no cover
+            if not HAS_PYDICOM:  # pragma: no cover - justification: optional pydicom missing fallback
                 raise ImportError("pydicom is required to save DICOM files: pip install pydicom")
             if metadata is not None:
                 ds = metadata
@@ -69,7 +89,11 @@ class MedicalImageIO:
                 return
             else:
                 from pydicom.dataset import FileDataset, FileMetaDataset
-                from pydicom.uid import ExplicitVRLittleEndian, SecondaryCaptureImageStorage, generate_uid
+                from pydicom.uid import (
+                    ExplicitVRLittleEndian,
+                    SecondaryCaptureImageStorage,
+                    generate_uid,
+                )
 
                 file_meta = FileMetaDataset()
                 file_meta.MediaStorageSOPClassUID = SecondaryCaptureImageStorage
@@ -99,4 +123,6 @@ class MedicalImageIO:
             cv2.imwrite(file_path, to_save)
             return
 
-        raise RuntimeError(f"Unable to save image format: {ext}")  # pragma: no cover
+        raise RuntimeError(
+            f"Unable to save image format: {ext}"
+        )  # pragma: no cover - justification: unknown image extension fallback

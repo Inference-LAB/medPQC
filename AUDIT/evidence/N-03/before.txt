@@ -1,0 +1,35 @@
+=== Baseline Execution for N-03 (tag v2.4.0) ===
+Command: python -m pytest test_exploit_n03.py -v
+Exit Code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n03.py::test_legacy_shims_accounted_in_compat_paths FAILED [100%]
+
+================================== FAILURES ===================================
+_________________ test_legacy_shims_accounted_in_compat_paths _________________
+
+    def test_legacy_shims_accounted_in_compat_paths():
+        """N-03: All compat/legacy tokens in medpqc must be justified in AUDIT/compat_paths.yaml."""
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        compat_yaml = repo_root / "AUDIT" / "compat_paths.yaml"
+>       assert compat_yaml.exists(), "AUDIT/compat_paths.yaml must exist"
+E       AssertionError: AUDIT/compat_paths.yaml must exist
+E       assert False
+E        +  where False = exists()
+E        +    where exists = WindowsPath('/workspace/medpqc/AUDIT/compat_paths.yaml').exists
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n03.py:25: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n03.py::test_legacy_shims_accounted_in_compat_paths - AssertionError: AUDIT/compat_paths.yaml must exist
+assert False
+ +  where False = exists()
+ +    where exists = WindowsPath('/workspace/medpqc/AUDIT/compat_paths.yaml').exists
+============================== 1 failed in 0.58s ==============================

@@ -1,0 +1,161 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d12.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 3 items
+
+tests/adversarial/exploits/test_exploit_d12.py::test_missing_patient_id_not_created FAILED [ 33%]
+tests/adversarial/exploits/test_exploit_d12.py::test_cleartext_does_not_contain_study_or_sop_instance_uids FAILED [ 66%]
+tests/adversarial/exploits/test_exploit_d12.py::test_short_site_key_not_padded PASSED [100%]
+
+================================== FAILURES ===================================
+_____________________ test_missing_patient_id_not_created _____________________
+
+tmp_path = WindowsPath('/home/user/AppData/Local/Temp/pytest-of-Muzammil Shadab/pytest-8/test_missing_patient_id_not_cr0')
+
+    def test_missing_patient_id_not_created(tmp_path):
+        """
+        D-12: Verifies that an absent PatientID remains absent in cleartext metadata,
+        and is NOT created as 'UNKNOWN' or 'MEDPQC-PSN-UNKNOWN'.
+        Must fail on v2.3.0 where absent PatientID was pseudonymized from 'UNKNOWN'.
+        """
+        ds = Dataset()
+        ds.file_meta = FileMetaDataset()
+        ds.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
+        ds.file_meta.MediaStorageSOPClassUID = SecondaryCaptureImageStorage
+        ds.file_meta.MediaStorageSOPInstanceUID = generate_uid()
+        ds.SOPClassUID = SecondaryCaptureImageStorage
+        ds.SOPInstanceUID = ds.file_meta.MediaStorageSOPInstanceUID
+        ds.Modality = "OT"
+        ds.Rows = 16
+        ds.Columns = 16
+        ds.BitsAllocated = 16
+        ds.BitsStored = 16
+        ds.HighBit = 15
+        ds.PixelRepresentation = 0
+        ds.SamplesPerPixel = 1
+        ds.PhotometricInterpretation = "MONOCHROME2"
+        ds.PixelData = np.zeros((16, 16), dtype=np.uint16).tobytes()
+        # Explicitly DO NOT set PatientID
+    
+        in_dcm = str(tmp_path / "in.dcm")
+        out_dcm = str(tmp_path / "out.dcm")
+        ds.save_as(in_dcm, write_like_original=False)
+    
+        site_key = SitePseudonymizationKey(b"A" * 32)
+        key_32 = b"B" * 32
+    
+        from medpqc.cipher.engine import MedPQCCipher
+        cipher = MedPQCCipher(key_32)
+    
+>       DICOMPACSEnvelope.encrypt_dicom_file(
+            input_dcm_path=in_dcm,
+            output_dcm_path=out_dcm,
+            cipher=cipher,
+            site_key=site_key,
+        )
+
+tests/adversarial/exploits/test_exploit_d12.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+medpqc/dicom/pacs.py:290: in encrypt_dicom_file
+    validate_site_salt(effective_key, min_length=16)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+salt = <medpqc.dicom.pacs.SitePseudonymizationKey object at 0x0000023F50F18980>
+min_length = 16
+
+    def validate_site_salt(salt: bytes, min_length: int = 16) -> bytes:
+        """
+        Validates that a site salt is of adequate length and byte type for keyed pseudonymization.
+        """
+        if not isinstance(salt, (bytes, bytearray)):
+>           raise TypeError(f"Invalid type for site_salt: expected bytes or bytearray, got {type(salt).__name__}")
+E           TypeError: Invalid type for site_salt: expected bytes or bytearray, got SitePseudonymizationKey
+
+medpqc/utils/validation.py:68: TypeError
+------------------------------ Captured log call ------------------------------
+WARNING  pydicom:misc.py:82 'write_like_original' is deprecated and will be removed in v4.0, please use 'enforce_file_format' instead
+_________ test_cleartext_does_not_contain_study_or_sop_instance_uids __________
+
+tmp_path = WindowsPath('/home/user/AppData/Local/Temp/pytest-of-Muzammil Shadab/pytest-8/test_cleartext_does_not_contai0')
+
+    def test_cleartext_does_not_contain_study_or_sop_instance_uids(tmp_path):
+        """
+        D-12: Verifies that original StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID
+        do NOT remain in cleartext in the encrypted file header (must be remapped).
+        Must fail on v2.3.0 where these UIDs remained in the clear.
+        """
+        ds = Dataset()
+        ds.file_meta = FileMetaDataset()
+        ds.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
+        ds.file_meta.MediaStorageSOPClassUID = SecondaryCaptureImageStorage
+        ds.file_meta.MediaStorageSOPInstanceUID = generate_uid()
+        ds.SOPClassUID = SecondaryCaptureImageStorage
+        ds.SOPInstanceUID = ds.file_meta.MediaStorageSOPInstanceUID
+        ds.StudyInstanceUID = "1.2.840.10008.1.999999.1111111111"
+        ds.SeriesInstanceUID = "1.2.840.10008.1.999999.2222222222"
+        ds.Modality = "OT"
+        ds.Rows = 16
+        ds.Columns = 16
+        ds.BitsAllocated = 16
+        ds.BitsStored = 16
+        ds.HighBit = 15
+        ds.PixelRepresentation = 0
+        ds.SamplesPerPixel = 1
+        ds.PhotometricInterpretation = "MONOCHROME2"
+        ds.PixelData = np.zeros((16, 16), dtype=np.uint16).tobytes()
+    
+        in_dcm = str(tmp_path / "in_uids.dcm")
+        out_dcm = str(tmp_path / "out_uids.dcm")
+        ds.save_as(in_dcm, enforce_file_format=True)
+    
+        from medpqc.cipher.engine import MedPQCCipher
+        cipher = MedPQCCipher(b"K" * 32)
+        site_key = SitePseudonymizationKey(b"S" * 32)
+    
+>       DICOMPACSEnvelope.encrypt_dicom_file(
+            input_dcm_path=in_dcm,
+            output_dcm_path=out_dcm,
+            cipher=cipher,
+            site_key=site_key,
+        )
+
+tests/adversarial/exploits/test_exploit_d12.py:95: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+medpqc/dicom/pacs.py:290: in encrypt_dicom_file
+    validate_site_salt(effective_key, min_length=16)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+salt = <medpqc.dicom.pacs.SitePseudonymizationKey object at 0x0000023F50DCF610>
+min_length = 16
+
+    def validate_site_salt(salt: bytes, min_length: int = 16) -> bytes:
+        """
+        Validates that a site salt is of adequate length and byte type for keyed pseudonymization.
+        """
+        if not isinstance(salt, (bytes, bytearray)):
+>           raise TypeError(f"Invalid type for site_salt: expected bytes or bytearray, got {type(salt).__name__}")
+E           TypeError: Invalid type for site_salt: expected bytes or bytearray, got SitePseudonymizationKey
+
+medpqc/utils/validation.py:68: TypeError
+============================== warnings summary ===============================
+tests/adversarial/exploits/test_exploit_d12.py::test_missing_patient_id_not_created
+  /home/user/AppData/Roaming/Python/Python314/site-packages/pydicom/filewriter.py:1309: DeprecationWarning: 'write_like_original' is deprecated and will be removed in v4.0, please use 'enforce_file_format' instead
+    warn_and_log(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d12.py::test_missing_patient_id_not_created - TypeError: Invalid type for site_salt: expected bytes or bytearray, got SitePseudonymizationKey
+FAILED tests/adversarial/exploits/test_exploit_d12.py::test_cleartext_does_not_contain_study_or_sop_instance_uids - TypeError: Invalid type for site_salt: expected bytes or bytearray, got SitePseudonymizationKey
+=================== 2 failed, 1 passed, 1 warning in 4.21s ====================
+
+=== STDERR ===
+

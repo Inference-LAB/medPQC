@@ -1,0 +1,19 @@
+{
+  "commands": {
+    "ruff_lint": "C:\\Program Files\\Python314\\python.exe -m ruff check medpqc",
+    "ruff_format": "C:\\Program Files\\Python314\\python.exe -m ruff format --check medpqc",
+    "mypy": "C:\\Program Files\\Python314\\python.exe -m mypy --strict medpqc",
+    "bandit": "C:\\Program Files\\Python314\\python.exe -m bandit -r medpqc -f json",
+    "pip_audit": "C:\\Program Files\\Python314\\python.exe -m pip_audit -d -f json",
+    "secret_scan": "internal regex AST/source scanner"
+  },
+  "exit_codes": {
+    "ruff_lint": 0,
+    "ruff_format": 0,
+    "mypy": 0,
+    "bandit": 0,
+    "pip_audit": 0,
+    "secret_scan": 0
+  },
+  "tool_versions": {}
+}

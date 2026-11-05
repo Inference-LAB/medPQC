@@ -1,0 +1,5 @@
+Gate 10: Packaging Build Integrity
+Status: PASS
+Reason: Sdist, wheel, and zip archives validated against deny-list
+Artifacts exist: True
+Deny-list violations: []

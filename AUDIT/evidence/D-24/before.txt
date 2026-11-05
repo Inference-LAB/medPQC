@@ -1,0 +1,160 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d24.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_d24.py::test_evidence_has_lf_line_endings_and_no_windows_paths FAILED [100%]
+
+================================== FAILURES ===================================
+___________ test_evidence_has_lf_line_endings_and_no_windows_paths ____________
+
+    def test_evidence_has_lf_line_endings_and_no_windows_paths():
+        """
+        D-24: Verifies that files under AUDIT/evidence/ strictly use LF endings
+        and contain no local Windows drive paths ('D://', 'C://Users', etc.).
+        Must fail on v2.3.0 where static analysis evidence files contained CRLF and Windows paths.
+        """
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        evidence_dir = repo_root / "AUDIT" / "evidence"
+    
+        violations = []
+    
+        for f in evidence_dir.rglob("*.txt"):
+            data = f.read_bytes()
+            if b"/r/n" in data:
+                violations.append(f"{f.name}: contains CRLF line endings")
+            text = f.read_text(encoding="utf-8", errors="ignore")
+            if "C://Users" in text or "D://INFERENCE" in text:
+                violations.append(f"{f.name}: contains Windows absolute path")
+    
+>       assert not violations, f"Formatting violations in evidence:/n" + "/n".join(violations)
+E       AssertionError: Formatting violations in evidence:
+E         failing_run.txt: contains CRLF line endings
+E         failing_run.txt: contains Windows absolute path
+E         passing_run.txt: contains CRLF line endings
+E         passing_run.txt: contains Windows absolute path
+E         failing_run.txt: contains CRLF line endings
+E         failing_run.txt: contains Windows absolute path
+E         passing_run.txt: contains CRLF line endings
+E         passing_run.txt: contains Windows absolute path
+E         failing_run.txt: contains CRLF line endings
+E         failing_run.txt: contains Windows absolute path
+E         passing_run.txt: contains CRLF line endings
+E         passing_run.txt: contains Windows absolute path
+E         failing_run.txt: contains CRLF line endings
+E         failing_run.txt: contains Windows absolute path
+E         passing_run.txt: contains CRLF line endings
+E         passing_run.txt: contains Windows absolute path
+E         failing_run.txt: contains CRLF line endings
+E         failing_run.txt: contains Windows absolute path
+E         passing_run.txt: contains CRLF line endings
+E         passing_run.txt: contains Windows absolute path
+E         failing_run.txt: contains CRLF line endings
+E         failing_run.txt: contains Windows absolute path
+E         passing_run.txt: contains CRLF line endings
+E         passing_run.txt: contains Windows absolute path
+E         failing_run.txt: contains CRLF line endings
+E         failing_run.txt: contains Windows absolute path
+E         passing_run.txt: contains CRLF line endings
+E         passing_run.txt: contains Windows absolute path
+E         failing_run.txt: contains CRLF line endings
+E         failing_run.txt: contains Windows absolute path
+E         passing_run.txt: contains CRLF line endings
+E         passing_run.txt: contains Windows absolute path
+E         failing_run.txt: contains CRLF line endings
+E         failing_run.txt: contains Windows absolute path
+E         passing_run.txt: contains CRLF line endings
+E         passing_run.txt: contains Windows absolute path
+E         failing_run.txt: contains CRLF line endings
+E         failing_run.txt: contains Windows absolute path
+E         passing_run.txt: contains CRLF line endings
+E         passing_run.txt: contains Windows absolute path
+E         failing_run.txt: contains CRLF line endings
+E         failing_run.txt: contains Windows absolute path
+E         passing_run.txt: contains CRLF line endings
+E         passing_run.txt: contains Windows absolute path
+E         failing_run.txt: contains CRLF line endings
+E         failing_run.txt: contains Windows absolute path
+E         passing_run.txt: contains CRLF line endings
+E         passing_run.txt: contains Windows absolute path
+E         failing_run.txt: contains CRLF line endings
+E         failing_run.txt: contains Windows absolute path
+E         passing_run.txt: contains CRLF line endings
+E         passing_run.txt: contains Windows absolute path
+E         bandit_report.txt: contains CRLF line endings
+E         mypy_report.txt: contains CRLF line endings
+E         ruff_report.txt: contains CRLF line endings
+E       assert not ['failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'bandit_report.txt: contains CRLF line endings', 'mypy_report.txt: contains CRLF line endings', 'ruff_report.txt: contains CRLF line endings']
+
+tests/adversarial/exploits/test_exploit_d24.py:26: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d24.py::test_evidence_has_lf_line_endings_and_no_windows_paths - AssertionError: Formatting violations in evidence:
+  failing_run.txt: contains CRLF line endings
+  failing_run.txt: contains Windows absolute path
+  passing_run.txt: contains CRLF line endings
+  passing_run.txt: contains Windows absolute path
+  failing_run.txt: contains CRLF line endings
+  failing_run.txt: contains Windows absolute path
+  passing_run.txt: contains CRLF line endings
+  passing_run.txt: contains Windows absolute path
+  failing_run.txt: contains CRLF line endings
+  failing_run.txt: contains Windows absolute path
+  passing_run.txt: contains CRLF line endings
+  passing_run.txt: contains Windows absolute path
+  failing_run.txt: contains CRLF line endings
+  failing_run.txt: contains Windows absolute path
+  passing_run.txt: contains CRLF line endings
+  passing_run.txt: contains Windows absolute path
+  failing_run.txt: contains CRLF line endings
+  failing_run.txt: contains Windows absolute path
+  passing_run.txt: contains CRLF line endings
+  passing_run.txt: contains Windows absolute path
+  failing_run.txt: contains CRLF line endings
+  failing_run.txt: contains Windows absolute path
+  passing_run.txt: contains CRLF line endings
+  passing_run.txt: contains Windows absolute path
+  failing_run.txt: contains CRLF line endings
+  failing_run.txt: contains Windows absolute path
+  passing_run.txt: contains CRLF line endings
+  passing_run.txt: contains Windows absolute path
+  failing_run.txt: contains CRLF line endings
+  failing_run.txt: contains Windows absolute path
+  passing_run.txt: contains CRLF line endings
+  passing_run.txt: contains Windows absolute path
+  failing_run.txt: contains CRLF line endings
+  failing_run.txt: contains Windows absolute path
+  passing_run.txt: contains CRLF line endings
+  passing_run.txt: contains Windows absolute path
+  failing_run.txt: contains CRLF line endings
+  failing_run.txt: contains Windows absolute path
+  passing_run.txt: contains CRLF line endings
+  passing_run.txt: contains Windows absolute path
+  failing_run.txt: contains CRLF line endings
+  failing_run.txt: contains Windows absolute path
+  passing_run.txt: contains CRLF line endings
+  passing_run.txt: contains Windows absolute path
+  failing_run.txt: contains CRLF line endings
+  failing_run.txt: contains Windows absolute path
+  passing_run.txt: contains CRLF line endings
+  passing_run.txt: contains Windows absolute path
+  failing_run.txt: contains CRLF line endings
+  failing_run.txt: contains Windows absolute path
+  passing_run.txt: contains CRLF line endings
+  passing_run.txt: contains Windows absolute path
+  bandit_report.txt: contains CRLF line endings
+  mypy_report.txt: contains CRLF line endings
+  ruff_report.txt: contains CRLF line endings
+assert not ['failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'failing_run.txt: contains CRLF line endings', 'failing_run.txt: contains Windows absolute path', 'passing_run.txt: contains CRLF line endings', 'passing_run.txt: contains Windows absolute path', 'bandit_report.txt: contains CRLF line endings', 'mypy_report.txt: contains CRLF line endings', 'ruff_report.txt: contains CRLF line endings']
+============================== 1 failed in 1.45s ==============================
+
+=== STDERR ===
+

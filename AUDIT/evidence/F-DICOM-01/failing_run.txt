@@ -1,0 +1,35 @@
+Baseline Git Commit: 7367c26d05c2ef9ada3f7e2a0684362aa614e00d
+Command: python -m pytest tests/adversarial/exploits/test_exploit_f_dicom_01.py -v
+Exit Code: 1
+
+Captured Output:
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_f_dicom_01.py::test_no_default_site_secret FAILED [100%]
+
+================================== FAILURES ===================================
+_________________________ test_no_default_site_secret _________________________
+
+    def test_no_default_site_secret():
+        """
+        F-DICOM-01: Verifies that no DEFAULT_SITE_SALT exists and encryption requires explicit site key.
+        Must fail on v2.2 where DEFAULT_SITE_SALT exists and encrypt_dicom_file can be called without a key.
+        """
+>       assert not hasattr(p, "DEFAULT_SITE_SALT"), "DEFAULT_SITE_SALT constant still present in pacs.py"
+E       AssertionError: DEFAULT_SITE_SALT constant still present in pacs.py
+E       assert not True
+E        +  where True = hasattr(p, 'DEFAULT_SITE_SALT')
+
+tests\adversarial\exploits\test_exploit_f_dicom_01.py:13: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_f_dicom_01.py::test_no_default_site_secret - AssertionError: DEFAULT_SITE_SALT constant still present in pacs.py
+assert not True
+ +  where True = hasattr(p, 'DEFAULT_SITE_SALT')
+============================== 1 failed in 3.56s ==============================

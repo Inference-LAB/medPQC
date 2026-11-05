@@ -1,0 +1,3 @@
+replay_backend,iterations,init_mean_ms,init_std_ms,resp_mean_ms,resp_std_ms,finalize_mean_ms,finalize_std_ms,total_handshake_ms,total_handshake_p50_ms,total_handshake_p95_ms,handshakes_per_sec,peak_memory_mb
+MemoryReplayStore,50,0.53,0.08,1.53,0.23,1.09,0.17,3.14,3.01,3.79,318.2,0.075
+SqliteReplayStore,50,0.44,0.09,7.41,0.65,0.89,0.14,8.74,8.68,10.14,114.4,0.066

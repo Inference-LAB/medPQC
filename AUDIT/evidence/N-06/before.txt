@@ -1,0 +1,105 @@
+=== Baseline Execution for N-06 (tag v2.4.0) ===
+Command: python -m pytest test_exploit_n06.py -v
+Exit Code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 3 items
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n06.py::test_default_encrypt_creates_only_one_file FAILED [ 33%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n06.py::test_legacy_parameters_removed_from_signature FAILED [ 66%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n06.py::test_raw_bytes_site_key_rejected FAILED [100%]
+
+================================== FAILURES ===================================
+_________________ test_default_encrypt_creates_only_one_file __________________
+
+    def test_default_encrypt_creates_only_one_file():
+        """N-06: Default encryption must create only one output file (out.dcm), no sidecar."""
+        ds = create_synthetic_dicom(rows=32, cols=32)
+        key = b"K" * 32
+        site_key = SitePseudonymizationKey(b"S" * 32) if hasattr(SitePseudonymizationKey, "__init__") else b"S" * 32
+    
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            in_path = Path(tmp_dir) / "in.dcm"
+            out_dir = Path(tmp_dir) / "output"
+            out_dir.mkdir()
+            out_path = out_dir / "out.dcm"
+    
+            ds.save_as(str(in_path))
+    
+            DICOMPACSEnvelope.encrypt_dicom_file(
+                input_dcm_path=str(in_path),
+                output_dcm_path=str(out_path),
+                cipher=MedPQCCipher(key),
+                site_key=site_key,
+            )
+    
+            files = os.listdir(str(out_dir))
+>           assert files == ["out.dcm"], f"Expected only ['out.dcm'], found: {files}"
+E           AssertionError: Expected only ['out.dcm'], found: ['out.dcm', 'out.dcm.pqc.json']
+E           assert ['out.dcm', 'out.dcm.pqc.json'] == ['out.dcm']
+E             
+E             Left contains one more item: 'out.dcm.pqc.json'
+E             
+E             Full diff: (-: missing in left side, +: extra in left side)
+E               [
+E                   'out.dcm',
+E             +     'out.dcm.pqc.json',
+E               ]
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n06.py:49: AssertionError
+________________ test_legacy_parameters_removed_from_signature ________________
+
+    def test_legacy_parameters_removed_from_signature():
+        """N-06: Passing site_salt or anonymize_headers must raise TypeError."""
+        ds = create_synthetic_dicom(rows=32, cols=32)
+        key = b"K" * 32
+        site_key = SitePseudonymizationKey(b"S" * 32) if hasattr(SitePseudonymizationKey, "__init__") else b"S" * 32
+    
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            in_path = Path(tmp_dir) / "in.dcm"
+            out_path = Path(tmp_dir) / "out.dcm"
+            ds.save_as(str(in_path))
+    
+            # Passing site_salt must raise TypeError
+>           with pytest.raises(TypeError):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE TypeError
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n06.py:64: Failed
+______________________ test_raw_bytes_site_key_rejected _______________________
+
+    def test_raw_bytes_site_key_rejected():
+        """N-06: Raw bytes as site_key must be rejected, requiring SitePseudonymizationKey."""
+        ds = create_synthetic_dicom(rows=32, cols=32)
+        key = b"K" * 32
+    
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            in_path = Path(tmp_dir) / "in.dcm"
+            out_path = Path(tmp_dir) / "out.dcm"
+            ds.save_as(str(in_path))
+    
+>           with pytest.raises((TypeError, ValueError)):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE any of (TypeError, ValueError)
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n06.py:94: Failed
+=========================== short test summary info ===========================
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n06.py::test_default_encrypt_creates_only_one_file - AssertionError: Expected only ['out.dcm'], found: ['out.dcm', 'out.dcm.pqc.json']
+assert ['out.dcm', 'out.dcm.pqc.json'] == ['out.dcm']
+  
+  Left contains one more item: 'out.dcm.pqc.json'
+  
+  Full diff: (-: missing in left side, +: extra in left side)
+    [
+        'out.dcm',
+  +     'out.dcm.pqc.json',
+    ]
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n06.py::test_legacy_parameters_removed_from_signature - Failed: DID NOT RAISE TypeError
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n06.py::test_raw_bytes_site_key_rejected - Failed: DID NOT RAISE any of (TypeError, ValueError)
+============================== 3 failed in 1.88s ==============================

@@ -2,16 +2,21 @@
 tests.test_kem_ecdh
 ===================
 Unit tests for medpqc.kem.ecdh module.
+Validates P-256 point checks, length invariants, and error handling.
 """
 
 import pytest
 from medpqc.kem.ecdh import ECDHKeyExchange, generate_ecdh_keypair
+from medpqc.kem.rlwe import KEMError
+
 
 def test_ecdh_keypair_generation():
     party, pub_bytes = generate_ecdh_keypair()
     assert isinstance(party, ECDHKeyExchange)
     assert isinstance(pub_bytes, bytes)
     assert len(pub_bytes) == 65  # Uncompressed SECP256R1 public key point
+    assert pub_bytes[0] == 0x04
+
 
 def test_ecdh_key_agreement_symmetry():
     alice = ECDHKeyExchange()
@@ -27,6 +32,7 @@ def test_ecdh_key_agreement_symmetry():
     assert len(alice_secret) == 32
     assert alice_secret == bob_secret
 
+
 def test_ecdh_distinct_keys_different_secrets():
     alice = ECDHKeyExchange()
     bob = ECDHKeyExchange()
@@ -37,15 +43,33 @@ def test_ecdh_distinct_keys_different_secrets():
 
     assert secret_ab != secret_ac
 
+
 def test_ecdh_custom_private_key_initialization():
     from cryptography.hazmat.primitives.asymmetric import ec
+
     custom_priv = ec.generate_private_key(ec.SECP256R1())
     party = ECDHKeyExchange(private_key=custom_priv)
     assert party._private_key is custom_priv
     assert len(party.public_bytes) == 65
 
+
 def test_ecdh_invalid_public_key_rejection():
     alice = ECDHKeyExchange()
-    invalid_pub = b"\x00" * 65
-    with pytest.raises(Exception):
-        alice.exchange(invalid_pub)
+
+    # Wrong length
+    with pytest.raises(KEMError):
+        alice.exchange(b"\x04" * 64)
+    with pytest.raises(KEMError):
+        alice.exchange(b"\x04" * 66)
+
+    # Compressed point prefix (0x02 or 0x03)
+    with pytest.raises(KEMError):
+        alice.exchange(b"\x02" + b"\x00" * 64)
+
+    # Non-bytes input
+    with pytest.raises(TypeError):
+        alice.exchange("invalid_str")  # type: ignore
+
+    # Off-curve / invalid point
+    with pytest.raises(KEMError):
+        alice.exchange(b"\x04" + b"\x00" * 64)

@@ -1,0 +1,23 @@
+=== Remediated Execution for N-07 ===
+Command: python -m pytest tests/adversarial/exploits/test_exploit_n07.py -v
+Exit Code: 0
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+tests/adversarial/exploits/test_exploit_n07.py::test_no_broad_except_in_package PASSED [ 50%]
+tests/adversarial/exploits/test_exploit_n07.py::test_unexpected_runtime_error_not_converted_to_manifest_error PASSED [100%]
+
+============================== warnings summary ===============================
+tests/adversarial/exploits/test_exploit_n07.py::test_unexpected_runtime_error_not_converted_to_manifest_error
+  /home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\filewriter.py:1309: DeprecationWarning: 'write_like_original' is deprecated and will be removed in v4.0, please use 'enforce_file_format' instead
+    warn_and_log(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 2 passed, 1 warning in 2.35s =========================

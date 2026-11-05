@@ -1,0 +1,34 @@
+=== Baseline Execution for N-02 (tag v2.4.0) ===
+Command: python -m pytest test_exploit_n02.py -v
+Exit Code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n02.py::test_in_memory_store_requires_explicit_dev_flag FAILED [ 50%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n02.py::test_sqlite_single_winner_across_processes PASSED [100%]
+
+================================== FAILURES ===================================
+_______________ test_in_memory_store_requires_explicit_dev_flag _______________
+
+    def test_in_memory_store_requires_explicit_dev_flag():
+        """N-02: ResponderContext must reject in-memory store without explicit dev flag."""
+        identity = IdentityKeyPair.generate("bob")
+        trust = TrustStore()
+        trust.register_peer("bob", identity.public_bytes)
+        mem_store = InMemoryReplayStoreForTestsAndDevelopment()
+    
+>       with pytest.raises(ValueError, match="allow_non_durable_replay_store"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n02.py:55: Failed
+=========================== short test summary info ===========================
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n02.py::test_in_memory_store_requires_explicit_dev_flag - Failed: DID NOT RAISE ValueError
+========================= 1 failed, 1 passed in 4.91s =========================

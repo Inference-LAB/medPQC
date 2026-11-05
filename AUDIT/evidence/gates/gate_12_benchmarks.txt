@@ -1,0 +1,5 @@
+Gate 12: Empirical Benchmarks Reproducibility
+Status: PASS
+Reason: Raw CSVs contain >=30 reps per cell and match benchmarks/REPORT.md
+D-22 exit: 0
+Report exists: True

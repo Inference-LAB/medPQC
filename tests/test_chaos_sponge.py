@@ -1,12 +1,12 @@
 """
 tests.test_chaos_sponge
 ========================
-Unit tests for medpqc.chaos.sponge module.
+Unit tests for medpqc.experimental.chaos.sponge module.
 """
 
 import numpy as np
 import pytest
-from medpqc.chaos.sponge import ChaoticEntropySponge
+from medpqc.experimental.chaos.sponge import ChaoticEntropySponge
 
 def test_sponge_bit_extraction_shape():
     seed = b"test_sponge_seed_123"
@@ -28,3 +28,7 @@ def test_sponge_uint8_stream():
     u8 = ChaoticEntropySponge.extract_uint8_stream(seed, length=256, warmup=50)
     assert len(u8) == 256
     assert u8.dtype == np.uint8
+
+def test_sponge_missing_length_raises():
+    with pytest.raises(ValueError, match="Must specify n_bytes or length"):
+        ChaoticEntropySponge.extract_uint8_stream(b"test_seed")

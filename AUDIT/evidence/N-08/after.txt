@@ -1,0 +1,28 @@
+=== Remediated Execution for N-08 ===
+Command: python -m pytest tests/adversarial/exploits/test_exploit_n08.py -v
+Exit Code: 0
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 3 items
+
+tests/adversarial/exploits/test_exploit_n08.py::test_unsupported_dicom_error_defined PASSED [ 33%]
+tests/adversarial/exploits/test_exploit_n08.py::test_encapsulated_jpeg_raises_unsupported_dicom_error PASSED [ 66%]
+tests/adversarial/exploits/test_exploit_n08.py::test_dicom_encrypted_object_spec_exists PASSED [100%]
+
+============================== warnings summary ===============================
+tests/adversarial/exploits/test_exploit_n08.py::test_encapsulated_jpeg_raises_unsupported_dicom_error
+  /home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\dataset.py:1378: DeprecationWarning: 'FileDataset.is_little_endian' will be removed in v4.0, set the Transfer Syntax UID or use the 'little_endian' argument with FileDataset.save_as() or dcmwrite() instead
+    warn_and_log(
+
+tests/adversarial/exploits/test_exploit_n08.py::test_encapsulated_jpeg_raises_unsupported_dicom_error
+  /home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\dataset.py:1337: DeprecationWarning: 'FileDataset.is_implicit_VR' will be removed in v4.0, set the Transfer Syntax UID or use the 'implicit_vr' argument with FileDataset.save_as() or dcmwrite() instead
+    warn_and_log(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 3 passed, 2 warnings in 2.03s ========================

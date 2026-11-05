@@ -1,0 +1,71 @@
+=== Baseline Execution for N-10 (tag v2.4.0) ===
+Command: python -m pytest test_exploit_n10.py -v
+Exit Code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 13 items
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_verify_rejects_bad_public_key[] PASSED [  7%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_verify_rejects_bad_public_key[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] PASSED [ 15%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_verify_rejects_bad_public_key[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] PASSED [ 23%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_verify_rejects_bad_public_key[None] PASSED [ 30%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_verify_rejects_bad_public_key[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] PASSED [ 38%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_verify_rejects_bad_public_key[12345] PASSED [ 46%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_verify_rejects_bad_signature_length[0] PASSED [ 53%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_verify_rejects_bad_signature_length[32] PASSED [ 61%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_verify_rejects_bad_signature_length[63] PASSED [ 69%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_verify_rejects_bad_signature_length[65] PASSED [ 76%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_verify_rejects_bad_signature_length[128] PASSED [ 84%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_kdf_salt_selection_changes_output_and_matches_kat FAILED [ 92%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_mutation_score_meets_floor_and_mutant_count FAILED [100%]
+
+================================== FAILURES ===================================
+___________ test_kdf_salt_selection_changes_output_and_matches_kat ____________
+
+    def test_kdf_salt_selection_changes_output_and_matches_kat():
+        """N-10: Distinct salts must change HKDF output and match deterministic KAT."""
+        ss1 = b"A" * 32
+        ss2 = b"B" * 32
+        kw = dict(
+            k_ecdh=ss1,
+            k_pq=ss2,
+            sender_ecdh_pub=b"\x04" + b"E" * 64,
+            receiver_ecdh_pub=b"\x04" + b"R" * 64,
+            pq_ciphertext=b"C" * 1088,
+            sender_id="alice",
+            receiver_id="bob",
+            session_id=b"S" * 16,
+            transcript_hash=b"H" * 32,
+        )
+    
+>       res_default = HybridKeyCombiner.derive_transcript_bound_keys(**kw, salt=None)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: type object 'HybridKeyCombiner' has no attribute 'derive_transcript_bound_keys'
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py:62: AttributeError
+______________ test_mutation_score_meets_floor_and_mutant_count _______________
+
+    def test_mutation_score_meets_floor_and_mutant_count():
+        """N-10: Mutation harness must evaluate >= 60 mutants and achieve >= 85% score."""
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        mut_json = repo_root / "AUDIT" / "evidence" / "mutation" / "mutation_results.json"
+>       assert mut_json.exists(), "AUDIT/evidence/mutation/mutation_results.json must exist"
+E       AssertionError: AUDIT/evidence/mutation/mutation_results.json must exist
+E       assert False
+E        +  where False = exists()
+E        +    where exists = WindowsPath('/workspace/medpqc/AUDIT/evidence/mutation/mutation_results.json').exists
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n10.py:76: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_kdf_salt_selection_changes_output_and_matches_kat - AttributeError: type object 'HybridKeyCombiner' has no attribute 'derive_transcript_bound_keys'
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n10.py::test_mutation_score_meets_floor_and_mutant_count - AssertionError: AUDIT/evidence/mutation/mutation_results.json must exist
+assert False
+ +  where False = exists()
+ +    where exists = WindowsPath('/workspace/medpqc/AUDIT/evidence/mutation/mutation_results.json').exists
+======================== 2 failed, 11 passed in 1.19s =========================

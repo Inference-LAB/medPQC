@@ -1,0 +1,50 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d18.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_d18.py::test_coverage_honest_config FAILED [100%]
+
+================================== FAILURES ===================================
+_________________________ test_coverage_honest_config _________________________
+
+    def test_coverage_honest_config():
+        """
+        D-18: Verifies that pyproject.toml does NOT contain 'pragma: no cover' in exclude_lines,
+        and enables branch coverage.
+        Must fail on v2.3.0 where 'pragma: no cover' was present in exclude_lines.
+        """
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        pyproject_path = repo_root / "pyproject.toml"
+    
+        with open(pyproject_path, "rb") as f:
+            config = tomllib.load(f)
+    
+        cov_run = config.get("tool", {}).get("coverage", {}).get("run", {})
+        cov_rep = config.get("tool", {}).get("coverage", {}).get("report", {})
+    
+>       assert cov_run.get("branch") is True, "tool.coverage.run.branch must be set to True"
+E       AssertionError: tool.coverage.run.branch must be set to True
+E       assert None is True
+E        +  where None = <built-in method get of dict object at 0x00000214282CEDC0>('branch')
+E        +    where <built-in method get of dict object at 0x00000214282CEDC0> = {'source': ['medpqc'], 'omit': ['*/tests/*', '*/examples/*', '*/benchmarks/*']}.get
+
+tests/adversarial/exploits/test_exploit_d18.py:26: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d18.py::test_coverage_honest_config - AssertionError: tool.coverage.run.branch must be set to True
+assert None is True
+ +  where None = <built-in method get of dict object at 0x00000214282CEDC0>('branch')
+ +    where <built-in method get of dict object at 0x00000214282CEDC0> = {'source': ['medpqc'], 'omit': ['*/tests/*', '*/examples/*', '*/benchmarks/*']}.get
+============================== 1 failed in 0.89s ==============================
+
+=== STDERR ===
+

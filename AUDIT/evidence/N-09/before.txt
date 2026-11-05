@@ -1,0 +1,58 @@
+=== Baseline Execution for N-09 (tag v2.4.0) ===
+Command: python -m pytest test_exploit_n09.py -v
+Exit Code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 3 items
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n09.py::test_placeholder_pixel_does_not_import_chaos PASSED [ 33%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n09.py::test_private_creator_is_stable_medpqc PASSED [ 66%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n09.py::test_encrypted_object_unmistakably_marked_non_diagnostic FAILED [100%]
+
+================================== FAILURES ===================================
+__________ test_encrypted_object_unmistakably_marked_non_diagnostic ___________
+
+    def test_encrypted_object_unmistakably_marked_non_diagnostic():
+        """N-09: Encrypted DICOM container must have explicit non-diagnostic marking in cleartext."""
+        ds = create_synthetic_dicom(rows=32, cols=32)
+        key = b"K" * 32
+        site_key = SitePseudonymizationKey(b"S" * 32) if hasattr(SitePseudonymizationKey, "__init__") else b"S" * 32
+    
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            in_path = Path(tmp_dir) / "in.dcm"
+            out_path = Path(tmp_dir) / "out.dcm"
+            ds.save_as(str(in_path))
+    
+            DICOMPACSEnvelope.encrypt_dicom_file(
+                input_dcm_path=str(in_path),
+                output_dcm_path=str(out_path),
+                cipher=MedPQCCipher(key),
+                site_key=site_key,
+            )
+    
+            enc_ds = pydicom.dcmread(str(out_path), stop_before_pixels=True)
+            # Check cleartext markers for non-diagnostic indicator
+            comments = getattr(enc_ds, "ImageComments", "")
+            lossy = getattr(enc_ds, "LossyImageCompression", "")
+            img_type = getattr(enc_ds, "ImageType", "")
+            marked = (
+                "NON-DIAGNOSTIC" in str(comments).upper()
+                or "NON-DIAGNOSTIC" in str(img_type).upper()
+            )
+>           assert marked, (
+                "Encrypted DICOM container missing unmistakable non-diagnostic marking in cleartext header"
+            )
+E           AssertionError: Encrypted DICOM container missing unmistakable non-diagnostic marking in cleartext header
+E           assert False
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n09.py:78: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n09.py::test_encrypted_object_unmistakably_marked_non_diagnostic - AssertionError: Encrypted DICOM container missing unmistakable non-diagnostic marking in cleartext header
+assert False
+========================= 1 failed, 2 passed in 2.07s =========================

@@ -1,0 +1,22 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d01.py -v
+Exit Code: 0
+Git Commit: 905150eb1716358ca339dec96840161a135330ae
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 3 items
+
+tests/adversarial/exploits/test_exploit_d01.py::test_respond_has_no_optional_security_parameters PASSED [ 33%]
+tests/adversarial/exploits/test_exploit_d01.py::test_other_node_rejects_message_for_bob PASSED [ 66%]
+tests/adversarial/exploits/test_exploit_d01.py::test_reflection_and_cross_role_confusion PASSED [100%]
+
+============================== 3 passed in 4.29s ==============================
+
+=== STDERR ===
+

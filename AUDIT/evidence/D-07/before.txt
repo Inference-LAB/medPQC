@@ -1,0 +1,45 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d07.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_d07.py::test_kdf_mutation_sensitivity FAILED [100%]
+
+================================== FAILURES ===================================
+________________________ test_kdf_mutation_sensitivity ________________________
+
+    def test_kdf_mutation_sensitivity():
+        """
+        D-07: Verifies that changing any single input to the KDF (either shared secret,
+        either public key, ciphertext, identities, transcript hash, or suite)
+        changes all output keys.
+        Must fail on v2.3.0.
+        """
+        combiner = HybridKeyCombiner()
+    
+        # Check that derive_session_keys requires all mandatory inputs
+>       assert hasattr(combiner, "derive_session_keys_strict"), (
+            "HybridKeyCombiner must provide derive_session_keys_strict"
+        )
+E       AssertionError: HybridKeyCombiner must provide derive_session_keys_strict
+E       assert False
+E        +  where False = hasattr(<medpqc.kem.combiner.HybridKeyCombiner object at 0x00000196909134D0>, 'derive_session_keys_strict')
+
+tests/adversarial/exploits/test_exploit_d07.py:18: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d07.py::test_kdf_mutation_sensitivity - AssertionError: HybridKeyCombiner must provide derive_session_keys_strict
+assert False
+ +  where False = hasattr(<medpqc.kem.combiner.HybridKeyCombiner object at 0x00000196909134D0>, 'derive_session_keys_strict')
+============================== 1 failed in 3.99s ==============================
+
+=== STDERR ===
+

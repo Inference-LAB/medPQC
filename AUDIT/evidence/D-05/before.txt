@@ -1,0 +1,51 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d05.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+tests/adversarial/exploits/test_exploit_d05.py::test_identity_encrypted_pkcs8_export_import FAILED [ 50%]
+tests/adversarial/exploits/test_exploit_d05.py::test_identity_verify_strict_error_handling FAILED [100%]
+
+================================== FAILURES ===================================
+_________________ test_identity_encrypted_pkcs8_export_import _________________
+
+    def test_identity_encrypted_pkcs8_export_import():
+        """
+        D-05: Verifies that IdentityKeyPair supports encrypted PKCS#8 export and import
+        with a passphrase, and rejects corrupted or wrong-passphrase imports.
+        Must fail on v2.3.0 where encrypted PKCS#8 export/import methods do not exist.
+        """
+>       keypair = IdentityKeyPair.generate("alice")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: type object 'IdentityKeyPair' has no attribute 'generate'
+
+tests/adversarial/exploits/test_exploit_d05.py:14: AttributeError
+_________________ test_identity_verify_strict_error_handling __________________
+
+    def test_identity_verify_strict_error_handling():
+        """
+        D-05: Verifies IdentityKeyPair.verify catches only InvalidSignature and ValueError,
+        and does not swallow arbitrary exceptions.
+        Must fail on v2.3.0.
+        """
+>       keypair = IdentityKeyPair.generate("alice")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: type object 'IdentityKeyPair' has no attribute 'generate'
+
+tests/adversarial/exploits/test_exploit_d05.py:38: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d05.py::test_identity_encrypted_pkcs8_export_import - AttributeError: type object 'IdentityKeyPair' has no attribute 'generate'
+FAILED tests/adversarial/exploits/test_exploit_d05.py::test_identity_verify_strict_error_handling - AttributeError: type object 'IdentityKeyPair' has no attribute 'generate'
+============================== 2 failed in 5.03s ==============================
+
+=== STDERR ===
+

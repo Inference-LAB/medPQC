@@ -1,0 +1,49 @@
+Baseline Git Commit: 7367c26d05c2ef9ada3f7e2a0684362aa614e00d
+Command: python -m pytest tests/adversarial/exploits/test_exploit_f_dicom_03.py -v
+Exit Code: 1
+
+Captured Output:
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_f_dicom_03.py::test_corrupt_embedded_manifest_does_not_fall_back_to_sidecar FAILED [100%]
+
+================================== FAILURES ===================================
+________ test_corrupt_embedded_manifest_does_not_fall_back_to_sidecar _________
+
+    def test_corrupt_embedded_manifest_does_not_fall_back_to_sidecar():
+        """
+        F-DICOM-03: Corrupting the embedded manifest must raise ManifestError when source is EMBEDDED.
+        Must fail on v2.2 where it silently falls back to .pqc.json and decrypts without error.
+        """
+        ds = create_synthetic_dicom()
+        cipher = MedPQCCipher(b"0" * 32, b"1" * 32)
+    
+        with tempfile.TemporaryDirectory() as td:
+            src = os.path.join(td, "src.dcm")
+            enc = os.path.join(td, "enc.dcm")
+            dec = os.path.join(td, "dec.dcm")
+            ds.save_as(src)
+    
+            DICOMPACSEnvelope.encrypt_dicom_file(src, enc, cipher)
+    
+            # Corrupt embedded private tag
+            ds_enc = pydicom.dcmread(enc)
+            ds_enc[0x0029, 0x1010].value = b"CORRUPTED_MANIFEST_BYTES"
+            ds_enc.save_as(enc)
+    
+            # In v2.2, this call ignores the corrupt embedded tag and silently loads enc.dcm.pqc.json
+            with pytest.raises(ManifestError):
+>               DICOMPACSEnvelope.decrypt_dicom_file(enc, dec, cipher, source=ManifestSource.EMBEDDED)
+E               TypeError: DICOMPACSEnvelope.decrypt_dicom_file() got an unexpected keyword argument 'source'
+
+tests\adversarial\exploits\test_exploit_f_dicom_03.py:46: TypeError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_f_dicom_03.py::test_corrupt_embedded_manifest_does_not_fall_back_to_sidecar - TypeError: DICOMPACSEnvelope.decrypt_dicom_file() got an unexpected keyword argument 'source'
+============================== 1 failed in 5.85s ==============================

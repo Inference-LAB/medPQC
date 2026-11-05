@@ -1,0 +1,21 @@
+﻿Remediated Git Commit: 4103385abfb3278f56f1a0c84642b3ccbc53607c
+Command: python -m pytest tests/adversarial/exploits/test_exploit_f_dicom_02.py -v
+Exit Code: 0
+
+Captured Output:
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 5 items
+
+tests/adversarial/exploits/test_exploit_f_dicom_02.py::test_swapping_phi_blob_between_objects_is_rejected PASSED [ 20%]
+tests/adversarial/exploits/test_exploit_f_dicom_02.py::test_header_tamper_rejected[Modality-CT] PASSED [ 40%]
+tests/adversarial/exploits/test_exploit_f_dicom_02.py::test_header_tamper_rejected[PatientID-HACKED] PASSED [ 60%]
+tests/adversarial/exploits/test_exploit_f_dicom_02.py::test_header_tamper_rejected[StudyDate-19000101] PASSED [ 80%]
+tests/adversarial/exploits/test_exploit_f_dicom_02.py::test_header_tamper_rejected[Rows-17] PASSED [100%]
+
+============================== 5 passed in 4.91s ==============================

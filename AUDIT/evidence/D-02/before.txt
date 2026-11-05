@@ -1,0 +1,72 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d02.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 3 items
+
+tests/adversarial/exploits/test_exploit_d02.py::test_no_default_replay_store FAILED [ 33%]
+tests/adversarial/exploits/test_exploit_d02.py::test_memory_replay_store_renamed_for_tests FAILED [ 66%]
+tests/adversarial/exploits/test_exploit_d02.py::test_failed_auth_does_not_consume_replay_slot FAILED [100%]
+
+================================== FAILURES ===================================
+________________________ test_no_default_replay_store _________________________
+
+    def test_no_default_replay_store():
+        """
+        D-02: Verifies that ResponderContext requires an explicit replay_store.
+        Must fail on v2.3.0 where ResponderContext does not exist or AuthenticatedHybridKEM
+        silently defaults to a fresh MemoryReplayStore().
+        """
+>       from medpqc.kem.auth import ResponderContext
+E       ImportError: cannot import name 'ResponderContext' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+
+tests/adversarial/exploits/test_exploit_d02.py:15: ImportError
+_________________ test_memory_replay_store_renamed_for_tests __________________
+
+    def test_memory_replay_store_renamed_for_tests():
+        """
+        D-02: Verifies that in-memory store is explicitly named
+        InMemoryReplayStoreForTestsAndDevelopment and published ReplayStore protocol exists.
+        Must fail on v2.3.0 where InMemoryReplayStoreForTestsAndDevelopment does not exist.
+        """
+        import medpqc.security.replay as replay
+>       assert hasattr(replay, "InMemoryReplayStoreForTestsAndDevelopment"), (
+            "In-memory store must be named InMemoryReplayStoreForTestsAndDevelopment"
+        )
+E       AssertionError: In-memory store must be named InMemoryReplayStoreForTestsAndDevelopment
+E       assert False
+E        +  where False = hasattr(<module 'medpqc.security.replay' from 'D://INFERENCE Lab//crypto paper//medpqc//medpqc//security//replay.py'>, 'InMemoryReplayStoreForTestsAndDevelopment')
+
+tests/adversarial/exploits/test_exploit_d02.py:30: AssertionError
+________________ test_failed_auth_does_not_consume_replay_slot ________________
+
+tmp_path = WindowsPath('/home/user/AppData/Local/Temp/pytest-of-Muzammil Shadab/pytest-6/test_failed_auth_does_not_cons0')
+
+    def test_failed_auth_does_not_consume_replay_slot(tmp_path):
+        """
+        D-02: Verifies that failed signature or untrusted peer does NOT consume a replay slot,
+        and closed store fails closed (rejects, never accepts).
+        Must fail on v2.3.0.
+        """
+>       from medpqc.kem.auth import ResponderContext, InitiatorContext, AuthenticationError
+E       ImportError: cannot import name 'ResponderContext' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+
+tests/adversarial/exploits/test_exploit_d02.py:42: ImportError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d02.py::test_no_default_replay_store - ImportError: cannot import name 'ResponderContext' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+FAILED tests/adversarial/exploits/test_exploit_d02.py::test_memory_replay_store_renamed_for_tests - AssertionError: In-memory store must be named InMemoryReplayStoreForTestsAndDevelopment
+assert False
+ +  where False = hasattr(<module 'medpqc.security.replay' from 'D://INFERENCE Lab//crypto paper//medpqc//medpqc//security//replay.py'>, 'InMemoryReplayStoreForTestsAndDevelopment')
+FAILED tests/adversarial/exploits/test_exploit_d02.py::test_failed_auth_does_not_consume_replay_slot - ImportError: cannot import name 'ResponderContext' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+============================== 3 failed in 4.60s ==============================
+
+=== STDERR ===
+

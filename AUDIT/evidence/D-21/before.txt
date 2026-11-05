@@ -1,0 +1,46 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d21.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_d21.py::test_version_is_2_4_0_single_sourced FAILED [100%]
+
+================================== FAILURES ===================================
+____________________ test_version_is_2_4_0_single_sourced _____________________
+
+    def test_version_is_2_4_0_single_sourced():
+        """
+        D-21: Verifies that medpqc.__version__ is '2.4.0' and matches pyproject.toml.
+        Must fail on v2.3.0 where version was '2.3.0'.
+        """
+>       assert medpqc.__version__ == "2.4.0", f"medpqc.__version__ must be 2.4.0, got {medpqc.__version__}"
+E       AssertionError: medpqc.__version__ must be 2.4.0, got 2.3.0
+E       assert '2.3.0' == '2.4.0'
+E         
+E         - 2.4.0
+E         ?   ^
+E         + 2.3.0
+E         ?   ^
+
+tests/adversarial/exploits/test_exploit_d21.py:17: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d21.py::test_version_is_2_4_0_single_sourced - AssertionError: medpqc.__version__ must be 2.4.0, got 2.3.0
+assert '2.3.0' == '2.4.0'
+  
+  - 2.4.0
+  ?   ^
+  + 2.3.0
+  ?   ^
+============================== 1 failed in 4.39s ==============================
+
+=== STDERR ===
+

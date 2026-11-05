@@ -1,0 +1,39 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d08.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_d08.py::test_aad_binds_complete_technical_attributes FAILED [100%]
+
+================================== FAILURES ===================================
+________________ test_aad_binds_complete_technical_attributes _________________
+
+    def test_aad_binds_complete_technical_attributes():
+        """
+        D-08: Verifies that AAD construction binds all 16 required technical attributes:
+        envelope_version, suite_id, session_key_id, envelope_id, payload_type,
+        pipeline_id, shape, dtype, endianness, frame_count, samples_per_pixel,
+        planar_configuration, photometric_interpretation, pixel_representation,
+        transfer_syntax_uid, original_byte_count, and dataset_hash.
+        Must fail on v2.3.0 where AAD only bound a partial subset of fields.
+        """
+>       cipher = MedPQCCipher()
+                 ^^^^^^^^^^^^^^
+E       TypeError: MedPQCCipher.__init__() missing 1 required positional argument: 'k_aes'
+
+tests/adversarial/exploits/test_exploit_d08.py:17: TypeError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d08.py::test_aad_binds_complete_technical_attributes - TypeError: MedPQCCipher.__init__() missing 1 required positional argument: 'k_aes'
+============================== 1 failed in 3.85s ==============================
+
+=== STDERR ===
+

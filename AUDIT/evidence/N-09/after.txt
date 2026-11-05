@@ -1,0 +1,24 @@
+=== Remediated Execution for N-09 ===
+Command: python -m pytest tests/adversarial/exploits/test_exploit_n09.py -v
+Exit Code: 0
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 3 items
+
+tests/adversarial/exploits/test_exploit_n09.py::test_placeholder_pixel_does_not_import_chaos PASSED [ 33%]
+tests/adversarial/exploits/test_exploit_n09.py::test_private_creator_is_stable_medpqc PASSED [ 66%]
+tests/adversarial/exploits/test_exploit_n09.py::test_encrypted_object_unmistakably_marked_non_diagnostic PASSED [100%]
+
+============================== warnings summary ===============================
+tests/adversarial/exploits/test_exploit_n09.py::test_encrypted_object_unmistakably_marked_non_diagnostic
+  /home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\filewriter.py:1309: DeprecationWarning: 'write_like_original' is deprecated and will be removed in v4.0, please use 'enforce_file_format' instead
+    warn_and_log(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 3 passed, 1 warning in 2.32s =========================

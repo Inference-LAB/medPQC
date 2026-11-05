@@ -1,12 +1,12 @@
 """
 tests.test_chaos_permutation
 ============================
-Unit tests for medpqc.chaos.permutation module.
+Unit tests for medpqc.experimental.chaos.permutation module.
 """
 
 import numpy as np
 import pytest
-from medpqc.chaos.permutation import ChaoticPermuter
+from medpqc.experimental.chaos.permutation import ChaoticPermuter
 
 def test_permutation_indices_bijective():
     seed = b"test_perm_seed"
@@ -38,3 +38,27 @@ def test_permutation_scrambling_destroys_correlation():
     corr_scrambled = float(np.corrcoef(scrambled[:-1], scrambled[1:])[0, 1])
     # Correlation after scrambling should drop near zero (< 0.1)
     assert abs(corr_scrambled) < 0.1
+
+def test_permutation_invalid_sizes():
+    with pytest.raises(ValueError, match="n_elements must be positive"):
+        ChaoticPermuter.generate_permutation_indices(b"seed", 0)
+    with pytest.raises(ValueError, match="n_elements must be positive"):
+        ChaoticPermuter.generate_permutation_indices(b"seed", -5)
+    with pytest.raises(ValueError, match="n_elements must be positive"):
+        ChaoticPermuter.generate_fisher_yates_indices(b"seed", 0)
+    with pytest.raises(ValueError, match="n_elements must be positive"):
+        ChaoticPermuter.generate_fisher_yates_indices(b"seed", -10)
+
+def test_fisher_yates_shuffle_and_unshuffle():
+    seed = b"test_fy_seed"
+    n = 512
+    original = np.arange(n, dtype=np.int32)
+    shuffled, indices = ChaoticPermuter.fisher_yates_shuffle(original, seed)
+
+    # Check bijective index set
+    assert np.array_equal(np.sort(indices), np.arange(n))
+    assert not np.array_equal(original, shuffled)
+
+    # Check lossless inversion
+    recovered = ChaoticPermuter.fisher_yates_unshuffle(shuffled, seed)
+    assert np.array_equal(original, recovered)

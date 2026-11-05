@@ -1,0 +1,25 @@
+=== Remediation Execution for N-01 (HEAD) ===
+Command: python -m pytest test_exploit_n01.py -v
+Exit Code: 0
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 4 items
+
+tests/adversarial/exploits/test_exploit_n01.py::test_wrapper_removed_or_inert PASSED [ 25%]
+tests/adversarial/exploits/test_exploit_n01.py::test_no_banned_params_or_kwargs_in_public_handshake_api PASSED [ 50%]
+tests/adversarial/exploits/test_exploit_n01.py::test_other_node_rejects_message_for_bob PASSED [ 75%]
+tests/adversarial/exploits/test_exploit_n01.py::test_wrapper_bypass_fails_on_baseline PASSED [100%]
+
+============================== warnings summary ===============================
+tests/adversarial/exploits/test_exploit_n01.py::test_other_node_rejects_message_for_bob
+  /workspace/medpqc\tests\adversarial\exploits\test_exploit_n01.py:107: NonDurableReplayStoreWarning: Using non-durable in-memory replay store in ResponderContext.
+    carol_ctx = ResponderContext("carol", carol_id, trust, replay_carol, allow_non_durable_replay_store=True)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 4 passed, 1 warning in 0.66s =========================

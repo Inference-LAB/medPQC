@@ -1,0 +1,59 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d09.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+tests/adversarial/exploits/test_exploit_d09.py::test_stable_private_creator_string FAILED [ 50%]
+tests/adversarial/exploits/test_exploit_d09.py::test_canonical_binary_envelope_framing FAILED [100%]
+
+================================== FAILURES ===================================
+_____________________ test_stable_private_creator_string ______________________
+
+    def test_stable_private_creator_string():
+        """
+        D-09: Verifies that private creator string is stable ('MEDPQC'),
+        not versioned as 'MEDPQC_SECURITY_V2.3' or similar.
+        Must fail on v2.3.0 where PRIVATE_CREATOR was 'MEDPQC_SECURITY_V2.3'.
+        """
+>       assert DICOMPACSEnvelope.PRIVATE_CREATOR == "MEDPQC", (
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            f"Private creator must be 'MEDPQC', got {DICOMPACSEnvelope.PRIVATE_CREATOR}"
+        )
+E       AttributeError: type object 'DICOMPACSEnvelope' has no attribute 'PRIVATE_CREATOR'
+
+tests/adversarial/exploits/test_exploit_d09.py:14: AttributeError
+___________________ test_canonical_binary_envelope_framing ____________________
+
+    def test_canonical_binary_envelope_framing():
+        """
+        D-09: Verifies that envelope serialization uses canonical binary framing with magic MEDPQC
+        and strict pre-allocation bounds, without outer_mac.
+        Must fail on v2.3.0.
+        """
+        from medpqc.dicom import pacs
+>       assert hasattr(pacs, "serialize_binary_envelope"), (
+            "pacs module must provide serialize_binary_envelope"
+        )
+E       AssertionError: pacs module must provide serialize_binary_envelope
+E       assert False
+E        +  where False = hasattr(<module 'medpqc.dicom.pacs' from 'D://INFERENCE Lab//crypto paper//medpqc//medpqc//dicom//pacs.py'>, 'serialize_binary_envelope')
+
+tests/adversarial/exploits/test_exploit_d09.py:26: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d09.py::test_stable_private_creator_string - AttributeError: type object 'DICOMPACSEnvelope' has no attribute 'PRIVATE_CREATOR'
+FAILED tests/adversarial/exploits/test_exploit_d09.py::test_canonical_binary_envelope_framing - AssertionError: pacs module must provide serialize_binary_envelope
+assert False
+ +  where False = hasattr(<module 'medpqc.dicom.pacs' from 'D://INFERENCE Lab//crypto paper//medpqc//medpqc//dicom//pacs.py'>, 'serialize_binary_envelope')
+============================== 2 failed in 4.52s ==============================
+
+=== STDERR ===
+

@@ -2,57 +2,84 @@
 tests.test_kem_rlwe
 ===================
 Unit tests for medpqc.kem.rlwe module.
+Validates NIST FIPS 203 ML-KEM-768 parameters, length invariants, and error handling.
 """
 
-import numpy as np
 import pytest
 from medpqc.kem.rlwe import (
-    _poly_mul_negacyclic,
-    _sample_cbd,
-    NativeRLWEKEM,
     PostQuantumKEM,
-    Q_PRIME,
-    N_DEG
+    KEMError,
+    MLKEM768_EK_LEN,
+    MLKEM768_CT_LEN,
+    MLKEM768_SS_LEN,
+    MLKEM768_DK_LEN,
 )
+import medpqc.kem
 
-def test_cbd_sampling():
-    samples = _sample_cbd(eta=2)
-    assert len(samples) == N_DEG
-    assert samples.dtype == np.int32
-    assert np.all(samples >= 0) and np.all(samples < Q_PRIME)
 
-def test_poly_mul_negacyclic():
-    # Multiply x by x^(n-1) -> should be -1 mod (x^n + 1)
-    a = np.zeros(N_DEG, dtype=np.int32)
-    b = np.zeros(N_DEG, dtype=np.int32)
-    a[1] = 1          # x
-    b[N_DEG - 1] = 1  # x^(n-1)
-    prod = _poly_mul_negacyclic(a, b)
-    # Result degree is 0 with value -1 mod Q_PRIME
-    assert prod[0] == (Q_PRIME - 1)
-    assert np.all(prod[1:] == 0)
+def test_fips_203_mlkem768_key_lengths_and_roundtrip():
+    alice = PostQuantumKEM(alg_name="ML-KEM-768")
+    bob = PostQuantumKEM(alg_name="ML-KEM-768")
 
-def test_native_rlwe_encapsulate_decapsulate():
-    server = NativeRLWEKEM()
-    pub_bytes = server.public_key_bytes
-    assert len(pub_bytes) == 32 + N_DEG * 2
+    assert alice.backend in ("fips-203-mlkem", "liboqs")
+    assert len(alice.public_key_bytes) == MLKEM768_EK_LEN
 
-    # Client encapsulates
-    ct_bytes, client_secret = NativeRLWEKEM.encapsulate(pub_bytes)
-    assert len(client_secret) == 32
-
-    # Server decapsulates
-    server_secret = server.decapsulate(ct_bytes)
-    assert len(server_secret) == 32
-
-    assert client_secret == server_secret
-
-def test_post_quantum_kem_wrapper():
-    alice = PostQuantumKEM()
-    bob = PostQuantumKEM()
-
+    # Bob encapsulates to Alice
     ct, bob_secret = bob.encapsulate(alice.public_key_bytes)
-    alice_secret = alice.decapsulate(ct)
+    assert len(ct) == MLKEM768_CT_LEN
+    assert len(bob_secret) == MLKEM768_SS_LEN
 
-    assert bob_secret == alice_secret
-    assert len(bob_secret) == 32
+    # Alice decapsulates
+    alice_secret = alice.decapsulate(ct)
+    assert len(alice_secret) == MLKEM768_SS_LEN
+    assert alice_secret == bob_secret
+
+
+def test_encapsulate_to_peer_classmethod():
+    """Validates encapsulation without instantiating full throwaway keypair."""
+    alice = PostQuantumKEM(alg_name="ML-KEM-768")
+    ct, bob_secret = PostQuantumKEM.encapsulate_to_peer(alice.public_key_bytes)
+    assert len(ct) == MLKEM768_CT_LEN
+    assert len(bob_secret) == MLKEM768_SS_LEN
+
+    alice_secret = alice.decapsulate(ct)
+    assert alice_secret == bob_secret
+
+
+def test_mlkem_invalid_inputs_rejected():
+    kem = PostQuantumKEM()
+
+    # Invalid public key length
+    with pytest.raises(KEMError):
+        kem.encapsulate(b"short_key")
+    with pytest.raises(TypeError):
+        kem.encapsulate(12345)  # type: ignore
+
+    # Invalid ciphertext length
+    with pytest.raises(KEMError):
+        kem.decapsulate(b"short_ciphertext")
+    with pytest.raises(TypeError):
+        kem.decapsulate(None)  # type: ignore
+
+
+def test_mlkem_unsupported_algorithm_raises():
+    with pytest.raises(KEMError):
+        PostQuantumKEM(alg_name="NonExistentKEM")
+
+
+def test_provider_info_structure():
+    kem = PostQuantumKEM()
+    info = kem.provider_info
+    assert info["algorithm"] == "ML-KEM-768"
+    assert info["public_key_len"] == str(MLKEM768_EK_LEN)
+    assert info["ciphertext_len"] == str(MLKEM768_CT_LEN)
+    assert info["shared_secret_len"] == str(MLKEM768_SS_LEN)
+
+
+def test_no_toy_kem_in_production_exports():
+    """F-KAT-01: NativeRLWEKEM and ExperimentalToyRLWE must not be in production exports."""
+    import medpqc
+    assert not hasattr(medpqc, "NativeRLWEKEM")
+    assert not hasattr(medpqc, "ExperimentalToyRLWE")
+    assert not hasattr(medpqc.kem, "NativeRLWEKEM")
+    assert not hasattr(medpqc.kem, "ExperimentalToyRLWE")

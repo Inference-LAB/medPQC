@@ -1,0 +1,85 @@
+=== Baseline Execution for N-12 (tag v2.4.0) ===
+Command: python -m pytest test_exploit_n12.py -v
+Exit Code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n12.py::test_hand_written_txt_reports_removed FAILED [ 50%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n12.py::test_pip_audit_is_valid_json FAILED [100%]
+
+================================== FAILURES ===================================
+____________________ test_hand_written_txt_reports_removed ____________________
+
+    def test_hand_written_txt_reports_removed():
+        """N-12: Hand-written prose txt reports duplicating tool output must be removed."""
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        static_dir = repo_root / "AUDIT" / "evidence" / "static"
+        assert static_dir.exists(), "AUDIT/evidence/static must exist"
+    
+        # pip_audit_report.txt is the prime example of hand-written prose
+        prose_report = static_dir / "pip_audit_report.txt"
+>       assert not prose_report.exists(), (
+            f"{prose_report} is hand-written prose duplicating tool output and must be removed"
+        )
+E       AssertionError: /workspace/medpqc\AUDIT\evidence\static\pip_audit_report.txt is hand-written prose duplicating tool output and must be removed
+E       assert not True
+E        +  where True = exists()
+E        +    where exists = WindowsPath('/workspace/medpqc/AUDIT/evidence/static/pip_audit_report.txt').exists
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n12.py:28: AssertionError
+________________________ test_pip_audit_is_valid_json _________________________
+
+    def test_pip_audit_is_valid_json():
+        """N-12: pip_audit output must be valid machine-generated JSON."""
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        json_path = repo_root / "AUDIT" / "evidence" / "static" / "pip_audit_report.json"
+        assert json_path.exists(), "AUDIT/evidence/static/pip_audit_report.json must exist"
+    
+        text = json_path.read_text(encoding="utf-8").strip()
+>       data = json.loads(text)
+               ^^^^^^^^^^^^^^^^
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n12.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/usr/bin\Lib\json\__init__.py:346: in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/bin\Lib\json\decoder.py:345: in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <json.decoder.JSONDecoder object at 0x000001CEE5703A10>
+s = 'NOT RUN: Command timed out after 15s: /c/\Program Files\\Python314\\python.exe -m pip_audit -f json'
+idx = 0
+
+    def raw_decode(self, s, idx=0):
+        """Decode a JSON document from ``s`` (a ``str`` beginning with
+        a JSON document) and return a 2-tuple of the Python
+        representation and the index in ``s`` where the document ended.
+    
+        This can be used to decode a JSON document from a string that may
+        have extraneous data at the end.
+    
+        """
+        try:
+            obj, end = self.scan_once(s, idx)
+        except StopIteration as err:
+>           raise JSONDecodeError("Expecting value", s, err.value) from None
+E           json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+/usr/bin\Lib\json\decoder.py:363: JSONDecodeError
+=========================== short test summary info ===========================
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n12.py::test_hand_written_txt_reports_removed - AssertionError: /workspace/medpqc\AUDIT\evidence\static\pip_audit_report.txt is hand-written prose duplicating tool output and must be removed
+assert not True
+ +  where True = exists()
+ +    where exists = WindowsPath('/workspace/medpqc/AUDIT/evidence/static/pip_audit_report.txt').exists
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n12.py::test_pip_audit_is_valid_json - json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+============================== 2 failed in 0.64s ==============================

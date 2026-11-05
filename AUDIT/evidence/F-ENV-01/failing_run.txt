@@ -1,0 +1,210 @@
+Baseline Git Commit: 7367c26d05c2ef9ada3f7e2a0684362aa614e00d
+Command: python -m pytest tests/adversarial/exploits/test_exploit_f_env_01.py -v
+Exit Code: 1
+
+Captured Output:
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 4 items
+
+tests/adversarial/exploits/test_exploit_f_env_01.py::test_inconsistent_or_huge_manifest_rejected_before_allocation[shape0-10] FAILED [ 25%]
+tests/adversarial/exploits/test_exploit_f_env_01.py::test_inconsistent_or_huge_manifest_rejected_before_allocation[shape1-0] FAILED [ 50%]
+tests/adversarial/exploits/test_exploit_f_env_01.py::test_inconsistent_or_huge_manifest_rejected_before_allocation[shape2-5] FAILED [ 75%]
+tests/adversarial/exploits/test_exploit_f_env_01.py::test_inconsistent_or_huge_manifest_rejected_before_allocation[shape3-99] FAILED [100%]
+
+================================== FAILURES ===================================
+__ test_inconsistent_or_huge_manifest_rejected_before_allocation[shape0-10] ___
+
+shape = (1000000, 1000000), n_bytes = 10
+
+    @pytest.mark.parametrize("shape,n_bytes", [
+        ((10**6, 10**6), 10),
+        ((0, 5), 0),
+        ((-1, 5), 5),
+        ((2, 2), 99),
+    ])
+    def test_inconsistent_or_huge_manifest_rejected_before_allocation(shape, n_bytes):
+        """
+        F-ENV-01: Manifest with absurd, negative, zero, or mismatched shapes must be rejected.
+        Must fail on v2.2 where limits.py does not exist and negative/zero or huge manifests are not capped.
+        """
+        cipher = MedPQCCipher(b"0" * 32, b"1" * 32)
+        fake_header = {
+            "version": "2.3.0",
+            "shape": list(shape),
+            "dtype": "uint8",
+            "n_bytes": n_bytes,
+            "scrambled": False,
+        }
+        raw_header = canonical_json_dumps(fake_header)
+        fake_ciphertext = raw_header + b"FAKE_CIPHERTEXT_PAYLOAD_PADDING"
+    
+        with pytest.raises((ValueError, LimitExceededError)):
+>           cipher.decrypt(fake_ciphertext)
+
+tests\adversarial\exploits\test_exploit_f_env_01.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <medpqc.cipher.engine.MedPQCCipher object at 0x0000016D7BC98050>
+encrypted_bundle = b'{"dtype":"uint8","n_bytes":10,"scrambled":false,"shape":[1000000,1000000],"version":"2.3.0"}FAKE_CIPHERTEXT_PAYLOAD_PADDING'
+
+    def decrypt(self, encrypted_bundle: Dict[str, Any]) -> np.ndarray:
+        """
+        Decrypt the ciphertext bundle and reconstruct the original image losslessly.
+        Validates both ciphertext and metadata integrity via AAD.
+        Rigorously validates metadata before any allocation.
+        """
+>       aead_bundle = encrypted_bundle['aead']
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: byte indices must be integers or slices, not str
+
+medpqc\cipher\engine.py:178: TypeError
+___ test_inconsistent_or_huge_manifest_rejected_before_allocation[shape1-0] ___
+
+shape = (0, 5), n_bytes = 0
+
+    @pytest.mark.parametrize("shape,n_bytes", [
+        ((10**6, 10**6), 10),
+        ((0, 5), 0),
+        ((-1, 5), 5),
+        ((2, 2), 99),
+    ])
+    def test_inconsistent_or_huge_manifest_rejected_before_allocation(shape, n_bytes):
+        """
+        F-ENV-01: Manifest with absurd, negative, zero, or mismatched shapes must be rejected.
+        Must fail on v2.2 where limits.py does not exist and negative/zero or huge manifests are not capped.
+        """
+        cipher = MedPQCCipher(b"0" * 32, b"1" * 32)
+        fake_header = {
+            "version": "2.3.0",
+            "shape": list(shape),
+            "dtype": "uint8",
+            "n_bytes": n_bytes,
+            "scrambled": False,
+        }
+        raw_header = canonical_json_dumps(fake_header)
+        fake_ciphertext = raw_header + b"FAKE_CIPHERTEXT_PAYLOAD_PADDING"
+    
+        with pytest.raises((ValueError, LimitExceededError)):
+>           cipher.decrypt(fake_ciphertext)
+
+tests\adversarial\exploits\test_exploit_f_env_01.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <medpqc.cipher.engine.MedPQCCipher object at 0x0000016D7BB73C50>
+encrypted_bundle = b'{"dtype":"uint8","n_bytes":0,"scrambled":false,"shape":[0,5],"version":"2.3.0"}FAKE_CIPHERTEXT_PAYLOAD_PADDING'
+
+    def decrypt(self, encrypted_bundle: Dict[str, Any]) -> np.ndarray:
+        """
+        Decrypt the ciphertext bundle and reconstruct the original image losslessly.
+        Validates both ciphertext and metadata integrity via AAD.
+        Rigorously validates metadata before any allocation.
+        """
+>       aead_bundle = encrypted_bundle['aead']
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: byte indices must be integers or slices, not str
+
+medpqc\cipher\engine.py:178: TypeError
+___ test_inconsistent_or_huge_manifest_rejected_before_allocation[shape2-5] ___
+
+shape = (-1, 5), n_bytes = 5
+
+    @pytest.mark.parametrize("shape,n_bytes", [
+        ((10**6, 10**6), 10),
+        ((0, 5), 0),
+        ((-1, 5), 5),
+        ((2, 2), 99),
+    ])
+    def test_inconsistent_or_huge_manifest_rejected_before_allocation(shape, n_bytes):
+        """
+        F-ENV-01: Manifest with absurd, negative, zero, or mismatched shapes must be rejected.
+        Must fail on v2.2 where limits.py does not exist and negative/zero or huge manifests are not capped.
+        """
+        cipher = MedPQCCipher(b"0" * 32, b"1" * 32)
+        fake_header = {
+            "version": "2.3.0",
+            "shape": list(shape),
+            "dtype": "uint8",
+            "n_bytes": n_bytes,
+            "scrambled": False,
+        }
+        raw_header = canonical_json_dumps(fake_header)
+        fake_ciphertext = raw_header + b"FAKE_CIPHERTEXT_PAYLOAD_PADDING"
+    
+        with pytest.raises((ValueError, LimitExceededError)):
+>           cipher.decrypt(fake_ciphertext)
+
+tests\adversarial\exploits\test_exploit_f_env_01.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <medpqc.cipher.engine.MedPQCCipher object at 0x0000016D7BB73250>
+encrypted_bundle = b'{"dtype":"uint8","n_bytes":5,"scrambled":false,"shape":[-1,5],"version":"2.3.0"}FAKE_CIPHERTEXT_PAYLOAD_PADDING'
+
+    def decrypt(self, encrypted_bundle: Dict[str, Any]) -> np.ndarray:
+        """
+        Decrypt the ciphertext bundle and reconstruct the original image losslessly.
+        Validates both ciphertext and metadata integrity via AAD.
+        Rigorously validates metadata before any allocation.
+        """
+>       aead_bundle = encrypted_bundle['aead']
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: byte indices must be integers or slices, not str
+
+medpqc\cipher\engine.py:178: TypeError
+__ test_inconsistent_or_huge_manifest_rejected_before_allocation[shape3-99] ___
+
+shape = (2, 2), n_bytes = 99
+
+    @pytest.mark.parametrize("shape,n_bytes", [
+        ((10**6, 10**6), 10),
+        ((0, 5), 0),
+        ((-1, 5), 5),
+        ((2, 2), 99),
+    ])
+    def test_inconsistent_or_huge_manifest_rejected_before_allocation(shape, n_bytes):
+        """
+        F-ENV-01: Manifest with absurd, negative, zero, or mismatched shapes must be rejected.
+        Must fail on v2.2 where limits.py does not exist and negative/zero or huge manifests are not capped.
+        """
+        cipher = MedPQCCipher(b"0" * 32, b"1" * 32)
+        fake_header = {
+            "version": "2.3.0",
+            "shape": list(shape),
+            "dtype": "uint8",
+            "n_bytes": n_bytes,
+            "scrambled": False,
+        }
+        raw_header = canonical_json_dumps(fake_header)
+        fake_ciphertext = raw_header + b"FAKE_CIPHERTEXT_PAYLOAD_PADDING"
+    
+        with pytest.raises((ValueError, LimitExceededError)):
+>           cipher.decrypt(fake_ciphertext)
+
+tests\adversarial\exploits\test_exploit_f_env_01.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <medpqc.cipher.engine.MedPQCCipher object at 0x0000016D7BB76D70>
+encrypted_bundle = b'{"dtype":"uint8","n_bytes":99,"scrambled":false,"shape":[2,2],"version":"2.3.0"}FAKE_CIPHERTEXT_PAYLOAD_PADDING'
+
+    def decrypt(self, encrypted_bundle: Dict[str, Any]) -> np.ndarray:
+        """
+        Decrypt the ciphertext bundle and reconstruct the original image losslessly.
+        Validates both ciphertext and metadata integrity via AAD.
+        Rigorously validates metadata before any allocation.
+        """
+>       aead_bundle = encrypted_bundle['aead']
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: byte indices must be integers or slices, not str
+
+medpqc\cipher\engine.py:178: TypeError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_f_env_01.py::test_inconsistent_or_huge_manifest_rejected_before_allocation[shape0-10] - TypeError: byte indices must be integers or slices, not str
+FAILED tests/adversarial/exploits/test_exploit_f_env_01.py::test_inconsistent_or_huge_manifest_rejected_before_allocation[shape1-0] - TypeError: byte indices must be integers or slices, not str
+FAILED tests/adversarial/exploits/test_exploit_f_env_01.py::test_inconsistent_or_huge_manifest_rejected_before_allocation[shape2-5] - TypeError: byte indices must be integers or slices, not str
+FAILED tests/adversarial/exploits/test_exploit_f_env_01.py::test_inconsistent_or_huge_manifest_rejected_before_allocation[shape3-99] - TypeError: byte indices must be integers or slices, not str
+============================== 4 failed in 3.55s ==============================

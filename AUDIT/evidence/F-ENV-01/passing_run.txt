@@ -1,0 +1,20 @@
+﻿Remediated Git Commit: 4103385abfb3278f56f1a0c84642b3ccbc53607c
+Command: python -m pytest tests/adversarial/exploits/test_exploit_f_env_01.py -v
+Exit Code: 0
+
+Captured Output:
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 4 items
+
+tests/adversarial/exploits/test_exploit_f_env_01.py::test_inconsistent_or_huge_manifest_rejected_before_allocation[shape0-10] PASSED [ 25%]
+tests/adversarial/exploits/test_exploit_f_env_01.py::test_inconsistent_or_huge_manifest_rejected_before_allocation[shape1-0] PASSED [ 50%]
+tests/adversarial/exploits/test_exploit_f_env_01.py::test_inconsistent_or_huge_manifest_rejected_before_allocation[shape2-5] PASSED [ 75%]
+tests/adversarial/exploits/test_exploit_f_env_01.py::test_inconsistent_or_huge_manifest_rejected_before_allocation[shape3-99] PASSED [100%]
+
+============================== 4 passed in 2.94s ==============================

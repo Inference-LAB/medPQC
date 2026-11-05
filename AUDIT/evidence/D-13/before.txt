@@ -1,0 +1,47 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d13.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_d13.py::test_restoration_preserves_private_vr_and_nested_structure FAILED [100%]
+
+================================== FAILURES ===================================
+_________ test_restoration_preserves_private_vr_and_nested_structure __________
+
+tmp_path = WindowsPath('/home/user/AppData/Local/Temp/pytest-of-Muzammil Shadab/pytest-9/test_restoration_preserves_pri0')
+
+    def test_restoration_preserves_private_vr_and_nested_structure(tmp_path):
+        """
+        D-13: Verifies that decrypted dataset preserves exact VRs (not forcing private elements to LO),
+        exact element order, nested sequences, and tag values.
+        Must fail on v2.3.0 where restoration forced private elements to VR 'LO'.
+        """
+        from medpqc.dicom.pacs import DICOMPACSEnvelope
+    
+        # Check that pacs provides serialize_retained_dataset or dataset-based restoration
+        from medpqc.dicom import pacs
+>       assert hasattr(pacs, "serialize_sealed_dataset"), (
+            "pacs module must provide serialize_sealed_dataset for exact binary restoration"
+        )
+E       AssertionError: pacs module must provide serialize_sealed_dataset for exact binary restoration
+E       assert False
+E        +  where False = hasattr(<module 'medpqc.dicom.pacs' from 'D://INFERENCE Lab//crypto paper//medpqc//medpqc//dicom//pacs.py'>, 'serialize_sealed_dataset')
+
+tests/adversarial/exploits/test_exploit_d13.py:20: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d13.py::test_restoration_preserves_private_vr_and_nested_structure - AssertionError: pacs module must provide serialize_sealed_dataset for exact binary restoration
+assert False
+ +  where False = hasattr(<module 'medpqc.dicom.pacs' from 'D://INFERENCE Lab//crypto paper//medpqc//medpqc//dicom//pacs.py'>, 'serialize_sealed_dataset')
+============================== 1 failed in 4.79s ==============================
+
+=== STDERR ===
+

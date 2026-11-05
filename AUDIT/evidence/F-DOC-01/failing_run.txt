@@ -1,0 +1,84 @@
+Baseline Git Commit: 7367c26d05c2ef9ada3f7e2a0684362aa614e00d
+Command: python -m pytest tests/adversarial/exploits/test_exploit_f_doc_01.py -v
+Exit Code: 1
+
+Captured Output:
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_f_doc_01.py::test_docs_contain_no_forbidden_claims FAILED [100%]
+
+================================== FAILURES ===================================
+____________________ test_docs_contain_no_forbidden_claims ____________________
+
+    def test_docs_contain_no_forbidden_claims():
+        """
+        F-DOC-01: Verifies that README, docs/, AUDIT/, and benchmarks/ contain no forbidden marketing claims
+        such as IND-CCA2 proofs, HIPAA-Compliant, production-grade, Elsevier Q1, 100% criteria satisfied.
+        Must fail on v2.2 where multiple documents make these claims.
+        """
+        forbidden_terms = [
+            r"\bIND-CCA2\b",
+            r"\bHIPAA-Compliant\b",
+            r"\bproduction-grade\b",
+            r"\bproduction-ready\b",
+            r"\bQuantum-proof\b",
+            r"\bunbreakable\b",
+            r"\bfully secure\b",
+            r"\bNIST-certified\b",
+            r"\bFIPS-certified\b",
+            r"\bElsevier\b",
+            r"\b100% CRITERIA SATISFIED\b",
+        ]
+    
+        target_files = []
+        for pat in ["README.md", "docs/**/*.md", "AUDIT/**/*.md", "benchmarks/**/*.md"]:
+            target_files.extend(glob.glob(pat, recursive=True))
+    
+        violations = []
+        for filepath in target_files:
+            with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                for idx, line in enumerate(f, start=1):
+                    # Allow lines that explicitly negate the term (e.g. 'not HIPAA-compliant', 'no IND-CCA2 reduction')
+                    lower_line = line.lower()
+                    if "not " in lower_line or "never " in lower_line or "cannot " in lower_line or "no " in lower_line or "test_" in lower_line:
+                        continue
+                    for term in forbidden_terms:
+                        if re.search(term, line, re.IGNORECASE):
+                            violations.append(f"{filepath}:{idx}: matched '{term}' in line: {line.strip()[:80]}")
+    
+>       assert not violations, f"Found {len(violations)} forbidden claims in documentation:\n" + "\n".join(violations[:10])
+E       AssertionError: Found 21 forbidden claims in documentation:
+E         README.md:1: matched '\bHIPAA-Compliant\b' in line: # MedPQC: Authenticated Hybrid Post-Quantum Key Exchange with Lorenz Chaotic Dif
+E         README.md:24: matched '\bHIPAA-Compliant\b' in line: > **Research Article In Progress**: This software library provides the productio
+E         README.md:24: matched '\bproduction-grade\b' in line: > **Research Article In Progress**: This software library provides the productio
+E         README.md:285: matched '\bHIPAA-Compliant\b' in line: title        = {Authenticated Hybrid Post-Quantum Key Exchange with Lorenz Chaot
+E         docs\ARCHITECTURE.md:126: matched '\bIND-CCA2\b' in line: | **Confidentiality** | AES-256-GCM | Provable IND-CCA2 security | NIST SP 800-3
+E         docs\ARCHITECTURE.md:128: matched '\bIND-CCA2\b' in line: | **Post-Quantum KEM** | ML-KEM-768 | IND-CCA2 lattice security | NIST FIPS 203 
+E         docs\LIMITATIONS.md:12: matched '\bIND-CCA2\b' in line: - **ML-KEM-768**: Guarantees IND-CCA2 post-quantum confidentiality against quant
+E         docs\SECURITY_MODEL.md:14: matched '\bIND-CCA2\b' in line: 1. **Indistinguishability under Adaptive Chosen-Ciphertext Attack (IND-CCA2)**:
+E         docs\SECURITY_MODEL.md:46: matched '\bIND-CCA2\b' in line: Let $\text{KEM}_{\text{classic}}$ be ephemeral P-256 ECDH and $\text{KEM}_{\text
+E         docs\SECURITY_MODEL.md:48: matched '\bIND-CCA2\b' in line: is IND-CCA2 secure against a polynomial-time adversary.
+E       assert not ["README.md:1: matched '\\bHIPAA-Compliant\\b' in line: # MedPQC: Authenticated Hybrid Post-Quantum Key Exchange with Lorenz Chaotic Dif", "README.md:24: matched '\\bHIPAA-Compliant\\b' in line: > **Research Article In Progress**: This software library provides the productio", "README.md:24: matched '\\bproduction-grade\\b' in line: > **Research Article In Progress**: This software library provides the productio", "README.md:285: matched '\\bHIPAA-Compliant\\b' in line: title        = {Authenticated Hybrid Post-Quantum Key Exchange with Lorenz Chaot", "docs\\ARCHITECTURE.md:126: matched '\\bIND-CCA2\\b' in line: | **Confidentiality** | AES-256-GCM | Provable IND-CCA2 security | NIST SP 800-3", "docs\\ARCHITECTURE.md:128: matched '\\bIND-CCA2\\b' in line: | **Post-Quantum KEM** | ML-KEM-768 | IND-CCA2 lattice security | NIST FIPS 203 ", "docs\\LIMITATIONS.md:12: matched '\\bIND-CCA2\\b' in line: - **ML-KEM-768**: Guarantees IND-CCA2 post-quantum confidentiality against quant", "docs\\SECURITY_MODEL.md:14: matched '\\bIND-CCA2\\b' in line: 1. **Indistinguishability under Adaptive Chosen-Ciphertext Attack (IND-CCA2)**:", "docs\\SECURITY_MODEL.md:46: matched '\\bIND-CCA2\\b' in line: Let $\\text{KEM}_{\\text{classic}}$ be ephemeral P-256 ECDH and $\\text{KEM}_{\\text", "docs\\SECURITY_MODEL.md:48: matched '\\bIND-CCA2\\b' in line: is IND-CCA2 secure against a polynomial-time adversary.", "docs\\SECURITY_MODEL.md:50: matched '\\bIND-CCA2\\b' in line: *Proof Sketch*: Suppose an adversary breaks the hybrid key $K$. Because $K_{\\tex", "AUDIT\\BASELINE_AUDIT.md:48: matched '\\bElsevier\\b' in line: | Documentation | Specifications | Basic markdown files exist; lack exhaustive f", "AUDIT\\BASELINE_AUDIT.md:116: matched '\\bElsevier\\b' in line: ## 4. Assessment Against Elsevier Q1 SCIE Criteria", "AUDIT\\BASELINE_AUDIT.md:130: matched '\\bElsevier\\b' in line: The MedPQC v2.1 baseline provides a solid foundation with verified FIPS 203 ML-K", "AUDIT\\INDEPENDENT_REVIEW.md:110: matched '\\bElsevier\\b' in line: MedPQC v2.2.0 is fully remediated, verified, and recommended for release candida", "AUDIT\\RELEASE_READINESS.md:8: matched '\\b100% CRITERIA SATISFIED\\b' in line: **Evaluation Status**: **PASSED (100% CRITERIA SATISFIED)**", "AUDIT\\RELEASE_READINESS.md:31: matched '\\bElsevier\\b' in line: The release gate review certifies that MedPQC v2.2.0 satisfies all security, cry", "AUDIT\\SECURITY_AUDIT_REPORT.md:36: matched '\\bIND-CCA2\\b' in line: ### 2.3 Chosen-Ciphertext Attack (IND-CCA2)", "AUDIT\\SECURITY_AUDIT_REPORT.md:39: matched '\\bIND-CCA2\\b' in line: - ML-KEM-768 implements the Fujisaki-Okamoto transformation with implicit reject", "AUDIT\\SECURITY_AUDIT_REPORT.md:40: matched '\\bIND-CCA2\\b' in line: - AES-256-GCM provides IND-CCA2 confidentiality and ciphertext authenticity. Any", "benchmarks\\REPORT.md:103: matched '\\bElsevier\\b' in line: The benchmark evidence confirms that MedPQC v2.2 delivers robust post-quantum se"]
+
+tests\adversarial\exploits\test_exploit_f_doc_01.py:45: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_f_doc_01.py::test_docs_contain_no_forbidden_claims - AssertionError: Found 21 forbidden claims in documentation:
+  README.md:1: matched '\bHIPAA-Compliant\b' in line: # MedPQC: Authenticated Hybrid Post-Quantum Key Exchange with Lorenz Chaotic Dif
+  README.md:24: matched '\bHIPAA-Compliant\b' in line: > **Research Article In Progress**: This software library provides the productio
+  README.md:24: matched '\bproduction-grade\b' in line: > **Research Article In Progress**: This software library provides the productio
+  README.md:285: matched '\bHIPAA-Compliant\b' in line: title        = {Authenticated Hybrid Post-Quantum Key Exchange with Lorenz Chaot
+  docs\ARCHITECTURE.md:126: matched '\bIND-CCA2\b' in line: | **Confidentiality** | AES-256-GCM | Provable IND-CCA2 security | NIST SP 800-3
+  docs\ARCHITECTURE.md:128: matched '\bIND-CCA2\b' in line: | **Post-Quantum KEM** | ML-KEM-768 | IND-CCA2 lattice security | NIST FIPS 203 
+  docs\LIMITATIONS.md:12: matched '\bIND-CCA2\b' in line: - **ML-KEM-768**: Guarantees IND-CCA2 post-quantum confidentiality against quant
+  docs\SECURITY_MODEL.md:14: matched '\bIND-CCA2\b' in line: 1. **Indistinguishability under Adaptive Chosen-Ciphertext Attack (IND-CCA2)**:
+  docs\SECURITY_MODEL.md:46: matched '\bIND-CCA2\b' in line: Let $\text{KEM}_{\text{classic}}$ be ephemeral P-256 ECDH and $\text{KEM}_{\text
+  docs\SECURITY_MODEL.md:48: matched '\bIND-CCA2\b' in line: is IND-CCA2 secure against a polynomial-time adversary.
+assert not ["README.md:1: matched '\\bHIPAA-Compliant\\b' in line: # MedPQC: Authenticated Hybrid Post-Quantum Key Exchange with Lorenz Chaotic Dif", "README.md:24: matched '\\bHIPAA-Compliant\\b' in line: > **Research Article In Progress**: This software library provides the productio", "README.md:24: matched '\\bproduction-grade\\b' in line: > **Research Article In Progress**: This software library provides the productio", "README.md:285: matched '\\bHIPAA-Compliant\\b' in line: title        = {Authenticated Hybrid Post-Quantum Key Exchange with Lorenz Chaot", "docs\\ARCHITECTURE.md:126: matched '\\bIND-CCA2\\b' in line: | **Confidentiality** | AES-256-GCM | Provable IND-CCA2 security | NIST SP 800-3", "docs\\ARCHITECTURE.md:128: matched '\\bIND-CCA2\\b' in line: | **Post-Quantum KEM** | ML-KEM-768 | IND-CCA2 lattice security | NIST FIPS 203 ", "docs\\LIMITATIONS.md:12: matched '\\bIND-CCA2\\b' in line: - **ML-KEM-768**: Guarantees IND-CCA2 post-quantum confidentiality against quant", "docs\\SECURITY_MODEL.md:14: matched '\\bIND-CCA2\\b' in line: 1. **Indistinguishability under Adaptive Chosen-Ciphertext Attack (IND-CCA2)**:", "docs\\SECURITY_MODEL.md:46: matched '\\bIND-CCA2\\b' in line: Let $\\text{KEM}_{\\text{classic}}$ be ephemeral P-256 ECDH and $\\text{KEM}_{\\text", "docs\\SECURITY_MODEL.md:48: matched '\\bIND-CCA2\\b' in line: is IND-CCA2 secure against a polynomial-time adversary.", "docs\\SECURITY_MODEL.md:50: matched '\\bIND-CCA2\\b' in line: *Proof Sketch*: Suppose an adversary breaks the hybrid key $K$. Because $K_{\\tex", "AUDIT\\BASELINE_AUDIT.md:48: matched '\\bElsevier\\b' in line: | Documentation | Specifications | Basic markdown files exist; lack exhaustive f", "AUDIT\\BASELINE_AUDIT.md:116: matched '\\bElsevier\\b' in line: ## 4. Assessment Against Elsevier Q1 SCIE Criteria", "AUDIT\\BASELINE_AUDIT.md:130: matched '\\bElsevier\\b' in line: The MedPQC v2.1 baseline provides a solid foundation with verified FIPS 203 ML-K", "AUDIT\\INDEPENDENT_REVIEW.md:110: matched '\\bElsevier\\b' in line: MedPQC v2.2.0 is fully remediated, verified, and recommended for release candida", "AUDIT\\RELEASE_READINESS.md:8: matched '\\b100% CRITERIA SATISFIED\\b' in line: **Evaluation Status**: **PASSED (100% CRITERIA SATISFIED)**", "AUDIT\\RELEASE_READINESS.md:31: matched '\\bElsevier\\b' in line: The release gate review certifies that MedPQC v2.2.0 satisfies all security, cry", "AUDIT\\SECURITY_AUDIT_REPORT.md:36: matched '\\bIND-CCA2\\b' in line: ### 2.3 Chosen-Ciphertext Attack (IND-CCA2)", "AUDIT\\SECURITY_AUDIT_REPORT.md:39: matched '\\bIND-CCA2\\b' in line: - ML-KEM-768 implements the Fujisaki-Okamoto transformation with implicit reject", "AUDIT\\SECURITY_AUDIT_REPORT.md:40: matched '\\bIND-CCA2\\b' in line: - AES-256-GCM provides IND-CCA2 confidentiality and ciphertext authenticity. Any", "benchmarks\\REPORT.md:103: matched '\\bElsevier\\b' in line: The benchmark evidence confirms that MedPQC v2.2 delivers robust post-quantum se"]
+============================== 1 failed in 0.90s ==============================

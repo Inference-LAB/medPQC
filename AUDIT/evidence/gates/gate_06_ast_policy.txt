@@ -1,0 +1,5 @@
+Gate 6: AST Policy Checks
+Status: PASS
+Reason: Zero AST policy violations across all source files
+Violations: []
+Scanned files: 27

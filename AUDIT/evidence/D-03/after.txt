@@ -1,0 +1,28 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d03.py -v
+Exit Code: 0
+Git Commit: 905150eb1716358ca339dec96840161a135330ae
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 9 items
+
+tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[1700000000.0] PASSED [ 11%]
+tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[1793540007.203] PASSED [ 22%]
+tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[True] PASSED [ 33%]
+tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[-1] PASSED [ 44%]
+tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[18446744073709551616] PASSED [ 55%]
+tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[1793540007203] PASSED [ 66%]
+tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[None] PASSED [ 77%]
+tests/adversarial/exploits/test_exploit_d03.py::test_seconds_encoded_timestamp_not_accepted PASSED [ 88%]
+tests/adversarial/exploits/test_exploit_d03.py::test_strict_wire_parsers_reject_trailing_bytes PASSED [100%]
+
+============================== 9 passed in 4.40s ==============================
+
+=== STDERR ===
+

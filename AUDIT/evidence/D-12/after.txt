@@ -1,0 +1,28 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d12.py -v
+Exit Code: 0
+Git Commit: 905150eb1716358ca339dec96840161a135330ae
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 3 items
+
+tests/adversarial/exploits/test_exploit_d12.py::test_missing_patient_id_not_created PASSED [ 33%]
+tests/adversarial/exploits/test_exploit_d12.py::test_cleartext_does_not_contain_study_or_sop_instance_uids PASSED [ 66%]
+tests/adversarial/exploits/test_exploit_d12.py::test_short_site_key_not_padded PASSED [100%]
+
+============================== warnings summary ===============================
+tests/adversarial/exploits/test_exploit_d12.py::test_missing_patient_id_not_created
+  /home/user/AppData/Roaming/Python/Python314/site-packages/pydicom/filewriter.py:1309: DeprecationWarning: 'write_like_original' is deprecated and will be removed in v4.0, please use 'enforce_file_format' instead
+    warn_and_log(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 3 passed, 1 warning in 4.64s =========================
+
+=== STDERR ===
+

@@ -1,0 +1,115 @@
+=== Baseline Execution for N-05 (tag v2.4.0) ===
+Command: python -m pytest test_exploit_n05.py -v
+Exit Code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n05.py::test_restore_does_not_inject_burned_in_annotation_when_absent FAILED [ 50%]
+..\medpqc\tests\adversarial\exploits\test_exploit_n05.py::test_restore_tag_sets_equal FAILED [100%]
+
+================================== FAILURES ===================================
+________ test_restore_does_not_inject_burned_in_annotation_when_absent ________
+
+    def test_restore_does_not_inject_burned_in_annotation_when_absent():
+        """N-05: Restoring a dataset where BurnedInAnnotation was absent must NOT have it."""
+        ds = _create_sample_dataset(include_burned_in=False)
+        assert "BurnedInAnnotation" not in ds
+    
+        key = b"K" * 32
+        site_key = SitePseudonymizationKey(b"S" * 32) if hasattr(SitePseudonymizationKey, "__init__") else b"S" * 32
+    
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            in_path = Path(tmp_dir) / "in.dcm"
+            enc_path = Path(tmp_dir) / "enc.dcm"
+            restored_path = Path(tmp_dir) / "restored.dcm"
+    
+            ds.save_as(str(in_path))
+    
+            DICOMPACSEnvelope.encrypt_dicom_file(
+                input_dcm_path=str(in_path),
+                output_dcm_path=str(enc_path),
+                cipher=MedPQCCipher(key),
+                site_key=site_key,
+            )
+    
+            _decrypt_envelope(str(enc_path), str(restored_path), MedPQCCipher(key), site_key)
+    
+            restored_ds = pydicom.dcmread(str(restored_path))
+    
+            # This must not be present if it was absent in original!
+>           assert "BurnedInAnnotation" not in restored_ds, (
+                "BurnedInAnnotation was injected during restoration into a dataset where it was absent"
+            )
+E           AssertionError: BurnedInAnnotation was injected during restoration into a dataset where it was absent
+E           assert 'BurnedInAnnotation' not in Dataset.file_meta -------------------------------\n(0002,0002) Media Storage SOP Class UID         UI: Secondary Capture Image Storage\n(0002,0003) Media Storage SOP Instance UID      UI: 1.2.826.0.1.3680043.8.498.59004392910032012683818622931921827477\n(0002,0010) Transfer Syntax UID                 UI: Explicit VR Little Endian\n-------------------------------------------------\n(0008,0016) SOP Class UID                       UI: Secondary Capture Image Storage\n(0008,0018) SOP Instance UID                    UI: 1.2.826.0.1.3680043.8.498.59004392910032012683818622931921827477\n(0008,0060) Modality                            CS: 'OT'\n(0008,1140)  Referenced Image Sequence  1 item(s) ---- \n   (0008,1150) Referenced SOP Class UID            UI: Secondary Capture Image Storage\n   (0008,1155) Referenced SOP Instance UID         UI: 1.2.826.0.1.3680043.8.498.41853651515447298145911130726218851515\n   ---------\n(0010,0010) Patient's Name                      PN: 'ORIGINAL_PATIENT'\n(0010,0020) Patient ID                          LO: 'ORIGINAL_ID_123'\n(0020,000D) Study Instance UID                  UI: 1.2.826.0.1.3680043.8.498.51162658598604176275918856738749672978\n(0020,000E) Series Instance UID                 UI: 1.2.826.0.1.3680043.8.498.90709003415795417563576529803090879571\n(0028,0002) Samples per Pixel                   US: 1\n(0028,0004) Photometric Interpretation          CS: 'MONOCHROME2'\n(0028,0010) Rows                                US: 32\n(0028,0011) Columns                             US: 32\n(0028,0100) Bits Allocated                      US: 8\n(0028,0101) Bits Stored                         US: 8\n(0028,0102) High Bit                            US: 7\n(0028,0103) Pixel Representation                US: 0\n(0028,0301) Burned In Annotation                CS: 'NO'\n(7FE0,0010) Pixel Data                          OB: Array of 1024 elements
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n05.py:132: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  pydicom:misc.py:82 'FileDataset.is_little_endian' will be removed in v4.0, set the Transfer Syntax UID or use the 'little_endian' argument with FileDataset.save_as() or dcmwrite() instead
+WARNING  pydicom:misc.py:82 'FileDataset.is_implicit_VR' will be removed in v4.0, set the Transfer Syntax UID or use the 'implicit_vr' argument with FileDataset.save_as() or dcmwrite() instead
+_________________________ test_restore_tag_sets_equal _________________________
+
+    def test_restore_tag_sets_equal():
+        """N-05: Restored dataset tags must match original dataset tags exactly."""
+        ds = _create_sample_dataset(include_burned_in=False)
+        key = b"K" * 32
+        site_key = SitePseudonymizationKey(b"S" * 32) if hasattr(SitePseudonymizationKey, "__init__") else b"S" * 32
+    
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            in_path = Path(tmp_dir) / "in.dcm"
+            enc_path = Path(tmp_dir) / "enc.dcm"
+            restored_path = Path(tmp_dir) / "restored.dcm"
+    
+            ds.save_as(str(in_path))
+    
+            DICOMPACSEnvelope.encrypt_dicom_file(
+                input_dcm_path=str(in_path),
+                output_dcm_path=str(enc_path),
+                cipher=MedPQCCipher(key),
+                site_key=site_key,
+            )
+    
+            _decrypt_envelope(str(enc_path), str(restored_path), MedPQCCipher(key), site_key)
+    
+            restored_ds = pydicom.dcmread(str(restored_path))
+    
+            orig_tags = set(ds.keys())
+            restored_tags = set(restored_ds.keys())
+    
+            # Exclude file meta if present in keys
+            diff_added = restored_tags - orig_tags - set(FILE_META_REGENERATED)
+            diff_missing = orig_tags - restored_tags - set(FILE_META_REGENERATED)
+    
+>           assert not diff_added, f"Restoration added unexpected tags: {diff_added}"
+E           AssertionError: Restoration added unexpected tags: {(0028,0301)}
+E           assert not {(0028,0301)}
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n05.py:168: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  pydicom:misc.py:82 'FileDataset.is_little_endian' will be removed in v4.0, set the Transfer Syntax UID or use the 'little_endian' argument with FileDataset.save_as() or dcmwrite() instead
+WARNING  pydicom:misc.py:82 'FileDataset.is_implicit_VR' will be removed in v4.0, set the Transfer Syntax UID or use the 'implicit_vr' argument with FileDataset.save_as() or dcmwrite() instead
+============================== warnings summary ===============================
+tests/adversarial/exploits/test_exploit_n05.py::test_restore_does_not_inject_burned_in_annotation_when_absent
+tests/adversarial/exploits/test_exploit_n05.py::test_restore_tag_sets_equal
+  /home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\dataset.py:1378: DeprecationWarning: 'FileDataset.is_little_endian' will be removed in v4.0, set the Transfer Syntax UID or use the 'little_endian' argument with FileDataset.save_as() or dcmwrite() instead
+    warn_and_log(
+
+tests/adversarial/exploits/test_exploit_n05.py::test_restore_does_not_inject_burned_in_annotation_when_absent
+tests/adversarial/exploits/test_exploit_n05.py::test_restore_tag_sets_equal
+  /home/user\AppData\Roaming\Python\Python314\site-packages\pydicom\dataset.py:1337: DeprecationWarning: 'FileDataset.is_implicit_VR' will be removed in v4.0, set the Transfer Syntax UID or use the 'implicit_vr' argument with FileDataset.save_as() or dcmwrite() instead
+    warn_and_log(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n05.py::test_restore_does_not_inject_burned_in_annotation_when_absent - AssertionError: BurnedInAnnotation was injected during restoration into a dataset where it was absent
+assert 'BurnedInAnnotation' not in Dataset.file_meta -------------------------------\n(0002,0002) Media Storage SOP Class UID         UI: Secondary Capture Image Storage\n(0002,0003) Media Storage SOP Instance UID      UI: 1.2.826.0.1.3680043.8.498.59004392910032012683818622931921827477\n(0002,0010) Transfer Syntax UID                 UI: Explicit VR Little Endian\n-------------------------------------------------\n(0008,0016) SOP Class UID                       UI: Secondary Capture Image Storage\n(0008,0018) SOP Instance UID                    UI: 1.2.826.0.1.3680043.8.498.59004392910032012683818622931921827477\n(0008,0060) Modality                            CS: 'OT'\n(0008,1140)  Referenced Image Sequence  1 item(s) ---- \n   (0008,1150) Referenced SOP Class UID            UI: Secondary Capture Image Storage\n   (0008,1155) Referenced SOP Instance UID         UI: 1.2.826.0.1.3680043.8.498.41853651515447298145911130726218851515\n   ---------\n(0010,0010) Patient's Name                      PN: 'ORIGINAL_PATIENT'\n(0010,0020) Patient ID                          LO: 'ORIGINAL_ID_123'\n(0020,000D) Study Instance UID                  UI: 1.2.826.0.1.3680043.8.498.51162658598604176275918856738749672978\n(0020,000E) Series Instance UID                 UI: 1.2.826.0.1.3680043.8.498.90709003415795417563576529803090879571\n(0028,0002) Samples per Pixel                   US: 1\n(0028,0004) Photometric Interpretation          CS: 'MONOCHROME2'\n(0028,0010) Rows                                US: 32\n(0028,0011) Columns                             US: 32\n(0028,0100) Bits Allocated                      US: 8\n(0028,0101) Bits Stored                         US: 8\n(0028,0102) High Bit                            US: 7\n(0028,0103) Pixel Representation                US: 0\n(0028,0301) Burned In Annotation                CS: 'NO'\n(7FE0,0010) Pixel Data                          OB: Array of 1024 elements
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n05.py::test_restore_tag_sets_equal - AssertionError: Restoration added unexpected tags: {(0028,0301)}
+assert not {(0028,0301)}
+======================== 2 failed, 4 warnings in 2.06s ========================

@@ -1,0 +1,452 @@
+{
+  "timestamp": "2026-11-02T08:31:58Z",
+  "duration_seconds": 189.35,
+  "total_mutants": 63,
+  "killed_mutants": 60,
+  "survived_mutants": 3,
+  "mutation_score": 95.24,
+  "mutation_score_percent": 95.24,
+  "mutations": [
+    {
+      "file": "medpqc/kem/auth.py",
+      "line": 98,
+      "original": "if private_key is None:",
+      "mutated": "if private_key is not None:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/auth.py",
+      "line": 146,
+      "original": "and len(arg2) == 64",
+      "mutated": "and len(arg2) != 64",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/auth.py",
+      "line": 147,
+      "original": "and (not isinstance(arg1, (bytes, bytearray)) or len(arg1) != 64)",
+      "mutated": "and (not isinstance(arg1, (bytes, bytearray)) or len(arg1) == 64)",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/auth.py",
+      "line": 155,
+      "original": "if not isinstance(pub_bytes, (bytes, bytearray)) or len(pub_bytes) != 32:",
+      "mutated": "if not isinstance(pub_bytes, (bytes, bytearray)) or len(pub_bytes) == 32:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/auth.py",
+      "line": 156,
+      "original": "return False",
+      "mutated": "return True",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/auth.py",
+      "line": 158,
+      "original": "if not isinstance(signature, (bytes, bytearray)) or len(signature) != 64:",
+      "mutated": "if not isinstance(signature, (bytes, bytearray)) or len(signature) == 64:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/auth.py",
+      "line": 159,
+      "original": "return False",
+      "mutated": "return True",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/auth.py",
+      "line": 162,
+      "original": "return False",
+      "mutated": "return True",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/auth.py",
+      "line": 167,
+      "original": "return True",
+      "mutated": "return False",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/auth.py",
+      "line": 169,
+      "original": "return False",
+      "mutated": "return True",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/auth.py",
+      "line": 174,
+      "original": "if passphrase is not None:",
+      "mutated": "if passphrase is None:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/auth.py",
+      "line": 199,
+      "original": "if not isinstance(passphrase, (bytes, bytearray)) or len(passphrase) == 0:",
+      "mutated": "if not isinstance(passphrase, (bytes, bytearray)) or len(passphrase) != 0:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/combiner.py",
+      "line": 79,
+      "original": "transcript_hash if transcript_hash is not None else b\"\",",
+      "mutated": "transcript_hash if transcript_hash is None else b\"\",",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/combiner.py",
+      "line": 111,
+      "original": "if len(k_ecdh) != 32 or len(k_pq) != 32:",
+      "mutated": "if len(k_ecdh) == 32 or len(k_pq) != 32:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/combiner.py",
+      "line": 134,
+      "original": "effective_salt = salt if salt is not None else KDF_SALT_CONSTANT",
+      "mutated": "effective_salt = salt if salt is None else KDF_SALT_CONSTANT",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/combiner.py",
+      "line": 199,
+      "original": "if len(k_ecdh) != 32 or len(k_pq) != 32:",
+      "mutated": "if len(k_ecdh) == 32 or len(k_pq) != 32:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/combiner.py",
+      "line": 203,
+      "original": "effective_salt = salt if salt is not None else KDF_SALT_CONSTANT",
+      "mutated": "effective_salt = salt if salt is None else KDF_SALT_CONSTANT",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/combiner.py",
+      "line": 204,
+      "original": "ctx = context if context is not None else info",
+      "mutated": "ctx = context if context is None else info",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/combiner.py",
+      "line": 206,
+      "original": "k_i2r = hkdf_sha512(ikm, effective_salt, ctx + b\"|i2r\", 32)",
+      "mutated": "k_i2r = hkdf_sha512(ikm, effective_salt, ctx - b\"|i2r\", 32)",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/combiner.py",
+      "line": 207,
+      "original": "k_r2i = hkdf_sha512(ikm, effective_salt, ctx + b\"|r2i\", 32)",
+      "mutated": "k_r2i = hkdf_sha512(ikm, effective_salt, ctx - b\"|r2i\", 32)",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/combiner.py",
+      "line": 208,
+      "original": "k_id = hkdf_sha512(ikm, effective_salt, ctx + b\"|id\", 16)",
+      "mutated": "k_id = hkdf_sha512(ikm, effective_salt, ctx - b\"|id\", 16)",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/combiner.py",
+      "line": 223,
+      "original": "if len(k_ecdh) != 32 or len(k_pq) != 32:",
+      "mutated": "if len(k_ecdh) == 32 or len(k_pq) != 32:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/kem/combiner.py",
+      "line": 227,
+      "original": "effective_salt = salt if salt is not None else KDF_SALT_CONSTANT",
+      "mutated": "effective_salt = salt if salt is None else KDF_SALT_CONSTANT",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/replay.py",
+      "line": 56,
+      "original": "self._is_closed: bool = False",
+      "mutated": "self._is_closed: bool = True",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/replay.py",
+      "line": 90,
+      "original": "self._is_closed = True",
+      "mutated": "self._is_closed = False",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/replay.py",
+      "line": 115,
+      "original": "exp = timestamp_ms_or_expires if timestamp_ms_or_expires is not None else ts + 300_000",
+      "mutated": "exp = timestamp_ms_or_expires if timestamp_ms_or_expires is None else ts + 300_000",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/replay.py",
+      "line": 115,
+      "original": "exp = timestamp_ms_or_expires if timestamp_ms_or_expires is not None else ts + 300_000",
+      "mutated": "exp = timestamp_ms_or_expires if timestamp_ms_or_expires is not None else ts - 300_000",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/replay.py",
+      "line": 123,
+      "original": "ts = int(timestamp_ms_or_expires) if timestamp_ms_or_expires is not None else 0",
+      "mutated": "ts = int(timestamp_ms_or_expires) if timestamp_ms_or_expires is None else 0",
+      "status": "SURVIVED"
+    },
+    {
+      "file": "medpqc/security/replay.py",
+      "line": 124,
+      "original": "exp = int(expires_at_ms) if expires_at_ms is not None else ts + 300_000",
+      "mutated": "exp = int(expires_at_ms) if expires_at_ms is None else ts + 300_000",
+      "status": "SURVIVED"
+    },
+    {
+      "file": "medpqc/security/replay.py",
+      "line": 124,
+      "original": "exp = int(expires_at_ms) if expires_at_ms is not None else ts + 300_000",
+      "mutated": "exp = int(expires_at_ms) if expires_at_ms is not None else ts - 300_000",
+      "status": "SURVIVED"
+    },
+    {
+      "file": "medpqc/security/replay.py",
+      "line": 141,
+      "original": "cutoff = ts - (exp - ts)",
+      "mutated": "cutoff = ts + (exp - ts)",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/replay.py",
+      "line": 144,
+      "original": "return False",
+      "mutated": "return True",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/replay.py",
+      "line": 146,
+      "original": "return True",
+      "mutated": "return False",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/trust.py",
+      "line": 56,
+      "original": "if len(public_key_bytes) != self.ED25519_KEY_LEN:",
+      "mutated": "if len(public_key_bytes) == self.ED25519_KEY_LEN:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/trust.py",
+      "line": 73,
+      "original": "if node_id not in self._nodes:",
+      "mutated": "if node_id in self._nodes:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/trust.py",
+      "line": 80,
+      "original": "\"not_after\": int(not_after) if not_after is not None else None,",
+      "mutated": "\"not_after\": int(not_after) if not_after is None else None,",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/trust.py",
+      "line": 129,
+      "original": "return True",
+      "mutated": "return False",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/trust.py",
+      "line": 131,
+      "original": "return False",
+      "mutated": "return True",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/trust.py",
+      "line": 147,
+      "original": "if len(public_key_bytes) != self.ED25519_KEY_LEN:",
+      "mutated": "if len(public_key_bytes) == self.ED25519_KEY_LEN:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/trust.py",
+      "line": 150,
+      "original": "now = int(current_time) if current_time is not None else 0",
+      "mutated": "now = int(current_time) if current_time is None else 0",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/trust.py",
+      "line": 161,
+      "original": "match_found = False",
+      "mutated": "match_found = True",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/trust.py",
+      "line": 163,
+      "original": "if cred[\"public_key\"] == bytes(public_key_bytes):",
+      "mutated": "if cred[\"public_key\"] != bytes(public_key_bytes):",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/security/trust.py",
+      "line": 164,
+      "original": "if kid in self._revoked_keys or cred[\"status\"] == \"revoked\":",
+      "mutated": "if kid in self._revoked_keys or cred[\"status\"] != \"revoked\":",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/aead.py",
+      "line": 41,
+      "original": "if not isinstance(aes_key, (bytes, bytearray)) or len(aes_key) != cls.KEY_LEN:",
+      "mutated": "if not isinstance(aes_key, (bytes, bytearray)) or len(aes_key) == cls.KEY_LEN:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/aead.py",
+      "line": 43,
+      "original": "if mac_key is not None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) != cls.KEY_LEN):",
+      "mutated": "if mac_key is not None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) == cls.KEY_LEN):",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/aead.py",
+      "line": 43,
+      "original": "if mac_key is not None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) != cls.KEY_LEN):",
+      "mutated": "if mac_key is None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) != cls.KEY_LEN):",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/aead.py",
+      "line": 46,
+      "original": "if nonce is None:",
+      "mutated": "if nonce is not None:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/aead.py",
+      "line": 48,
+      "original": "elif not isinstance(nonce, (bytes, bytearray)) or len(nonce) != cls.NONCE_LEN:",
+      "mutated": "elif not isinstance(nonce, (bytes, bytearray)) or len(nonce) == cls.NONCE_LEN:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/aead.py",
+      "line": 66,
+      "original": "if mac_key is not None:",
+      "mutated": "if mac_key is None:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/aead.py",
+      "line": 67,
+      "original": "mac_input = bytes(nonce) + len(aad).to_bytes(4, \"big\") + bytes(aad) + ciphertext + gcm_tag",
+      "mutated": "mac_input = bytes(nonce) - len(aad).to_bytes(4, \"big\") + bytes(aad) + ciphertext + gcm_tag",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/aead.py",
+      "line": 84,
+      "original": "if not isinstance(aes_key, (bytes, bytearray)) or len(aes_key) != cls.KEY_LEN:",
+      "mutated": "if not isinstance(aes_key, (bytes, bytearray)) or len(aes_key) == cls.KEY_LEN:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/aead.py",
+      "line": 86,
+      "original": "if mac_key is not None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) != cls.KEY_LEN):",
+      "mutated": "if mac_key is not None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) == cls.KEY_LEN):",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/aead.py",
+      "line": 86,
+      "original": "if mac_key is not None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) != cls.KEY_LEN):",
+      "mutated": "if mac_key is None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) != cls.KEY_LEN):",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/engine.py",
+      "line": 40,
+      "original": "enable_scrambling: bool = False,",
+      "mutated": "enable_scrambling: bool = True,",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/engine.py",
+      "line": 61,
+      "original": "if envelope_id is not None:",
+      "mutated": "if envelope_id is None:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/engine.py",
+      "line": 63,
+      "original": "if session_key_id is not None:",
+      "mutated": "if session_key_id is None:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/engine.py",
+      "line": 65,
+      "original": "if suite_id is not None:",
+      "mutated": "if suite_id is None:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/engine.py",
+      "line": 67,
+      "original": "if transfer_syntax_uid is not None:",
+      "mutated": "if transfer_syntax_uid is None:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/engine.py",
+      "line": 69,
+      "original": "if dataset_hash is not None:",
+      "mutated": "if dataset_hash is None:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/engine.py",
+      "line": 93,
+      "original": "if k_aes is None:",
+      "mutated": "if k_aes is not None:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/engine.py",
+      "line": 95,
+      "original": "elif not isinstance(k_aes, (bytes, bytearray)) or len(k_aes) != 32:",
+      "mutated": "elif not isinstance(k_aes, (bytes, bytearray)) or len(k_aes) == 32:",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/engine.py",
+      "line": 97,
+      "original": "if k_mac is not None and (not isinstance(k_mac, (bytes, bytearray)) or len(k_mac) != 32):",
+      "mutated": "if k_mac is not None and (not isinstance(k_mac, (bytes, bytearray)) or len(k_mac) == 32):",
+      "status": "KILLED"
+    },
+    {
+      "file": "medpqc/cipher/engine.py",
+      "line": 97,
+      "original": "if k_mac is not None and (not isinstance(k_mac, (bytes, bytearray)) or len(k_mac) != 32):",
+      "mutated": "if k_mac is None and (not isinstance(k_mac, (bytes, bytearray)) or len(k_mac) != 32):",
+      "status": "KILLED"
+    }
+  ]
+}

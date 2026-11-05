@@ -1,0 +1,68 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d01.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 3 items
+
+tests/adversarial/exploits/test_exploit_d01.py::test_respond_has_no_optional_security_parameters FAILED [ 33%]
+tests/adversarial/exploits/test_exploit_d01.py::test_other_node_rejects_message_for_bob FAILED [ 66%]
+tests/adversarial/exploits/test_exploit_d01.py::test_reflection_and_cross_role_confusion FAILED [100%]
+
+================================== FAILURES ===================================
+______________ test_respond_has_no_optional_security_parameters _______________
+
+    def test_respond_has_no_optional_security_parameters():
+        """
+        D-01: Verifies that respond() does not accept optional security parameters
+        (responder_id, expected_alice_id_pub, replay_protector, allow_unauthenticated).
+        Must fail on v2.3.0 where these optional parameters exist in respond().
+        """
+        # Check that ResponderContext exists
+        from medpqc.kem import auth
+>       assert hasattr(auth, "ResponderContext"), "ResponderContext must exist"
+E       AssertionError: ResponderContext must exist
+E       assert False
+E        +  where False = hasattr(<module 'medpqc.kem.auth' from 'D://INFERENCE Lab//crypto paper//medpqc//medpqc//kem//auth.py'>, 'ResponderContext')
+
+tests/adversarial/exploits/test_exploit_d01.py:19: AssertionError
+___________________ test_other_node_rejects_message_for_bob ___________________
+
+    def test_other_node_rejects_message_for_bob():
+        """
+        D-01: Node Carol (node_id='carol') receives a message addressed to 'bob'.
+        Must reject with WrongRecipientError and consume no replay slot.
+        Must fail on v2.3.0 where respond() accepts messages for other nodes if responder_id is omitted.
+        """
+>       from medpqc.kem.auth import ResponderContext, InitiatorContext, WrongRecipientError
+E       ImportError: cannot import name 'ResponderContext' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+
+tests/adversarial/exploits/test_exploit_d01.py:33: ImportError
+__________________ test_reflection_and_cross_role_confusion ___________________
+
+    def test_reflection_and_cross_role_confusion():
+        """
+        D-01: Initiator message fed to initiator, or init message presented as response message.
+        Must fail closed.
+        """
+>       from medpqc.kem.auth import InitiatorContext, AuthenticationError
+E       ImportError: cannot import name 'InitiatorContext' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+
+tests/adversarial/exploits/test_exploit_d01.py:64: ImportError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d01.py::test_respond_has_no_optional_security_parameters - AssertionError: ResponderContext must exist
+assert False
+ +  where False = hasattr(<module 'medpqc.kem.auth' from 'D://INFERENCE Lab//crypto paper//medpqc//medpqc//kem//auth.py'>, 'ResponderContext')
+FAILED tests/adversarial/exploits/test_exploit_d01.py::test_other_node_rejects_message_for_bob - ImportError: cannot import name 'ResponderContext' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+FAILED tests/adversarial/exploits/test_exploit_d01.py::test_reflection_and_cross_role_confusion - ImportError: cannot import name 'InitiatorContext' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+============================== 3 failed in 4.64s ==============================
+
+=== STDERR ===
+

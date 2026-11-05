@@ -1,0 +1,19 @@
+{
+  "acvp_server_repository": "https://github.com/usnistgov/ACVP-Server",
+  "acvp_server_commit": "15c0f3deeefbfa8cb6cd32a99e1ca3b738c66bf0",
+  "retrieval_date": "2026-11-01T15:04:00Z",
+  "source_files": {
+    "gen-val/json-files/ML-KEM-keyGen-FIPS203/prompt.json": "3f9ce34f6c836c77958bad2729e837c3b213f44ac36c3065976e7acca6389523",
+    "gen-val/json-files/ML-KEM-keyGen-FIPS203/expectedResults.json": "a253d0ad91c95ebea5b409673defef0aa49d65d4ed72286399e2e798ddf073a4",
+    "gen-val/json-files/ML-KEM-keyGen-FIPS203/internalProjection.json": "d7a62a2c3476957f56dd8d24f9004ea6776ccfe995ffe71a65bb9506dc9c7b1b",
+    "gen-val/json-files/ML-KEM-encapDecap-FIPS203/prompt.json": "91d405f78eb450d42e59e40948148212566e7b31b3ff953366c01c084152a0e3",
+    "gen-val/json-files/ML-KEM-encapDecap-FIPS203/expectedResults.json": "5f1544d9604ca27c0388d114344fa14ee4d8f8e902a1c13832aa8ff5db3c535d",
+    "gen-val/json-files/ML-KEM-encapDecap-FIPS203/internalProjection.json": "f1e22b7d399dde7bf61b838770c658a380e4b1cfc4bd395dbed9ec6c1d977d9d"
+  },
+  "vector_files": {
+    "nist_fips203_kat_vectors.json": "1888f452d9c79345a5c1b8372bc62b0869001c6558ae932bc6bab1605095ed56"
+  },
+  "mlkem768_keygen_cases_count": 25,
+  "mlkem768_encap_cases_count": 55,
+  "disclaimer": "Passing known-answer tests is not FIPS 140/CAVP validation."
+}

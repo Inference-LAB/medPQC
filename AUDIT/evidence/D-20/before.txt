@@ -1,0 +1,47 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d20.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+tests/adversarial/exploits/test_exploit_d20.py::test_core_import_without_optional_libs PASSED [ 50%]
+tests/adversarial/exploits/test_exploit_d20.py::test_experimental_modules_moved_to_experimental_subpackage FAILED [100%]
+
+================================== FAILURES ===================================
+_________ test_experimental_modules_moved_to_experimental_subpackage __________
+
+    def test_experimental_modules_moved_to_experimental_subpackage():
+        """
+        D-20: Verifies that Lorenz, sponge, permutation, and diffusion are located under
+        medpqc.experimental, and not in the default production medpqc root.
+        Must fail on v2.3.0 where medpqc.chaos and medpqc.cipher.diffusion lived in production.
+        """
+        from pathlib import Path
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        pkg_dir = repo_root / "medpqc"
+    
+        # medpqc/chaos directory must be moved to medpqc/experimental/chaos
+>       assert not (pkg_dir / "chaos").exists(), "medpqc/chaos must be relocated to medpqc/experimental/chaos"
+E       AssertionError: medpqc/chaos must be relocated to medpqc/experimental/chaos
+E       assert not True
+E        +  where True = exists()
+E        +    where exists = (WindowsPath('/workspace/medpqc/medpqc') / 'chaos').exists
+
+tests/adversarial/exploits/test_exploit_d20.py:37: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d20.py::test_experimental_modules_moved_to_experimental_subpackage - AssertionError: medpqc/chaos must be relocated to medpqc/experimental/chaos
+assert not True
+ +  where True = exists()
+ +    where exists = (WindowsPath('/workspace/medpqc/medpqc') / 'chaos').exists
+========================= 1 failed, 1 passed in 1.60s =========================
+
+=== STDERR ===
+

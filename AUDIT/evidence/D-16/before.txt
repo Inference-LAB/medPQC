@@ -1,0 +1,45 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d16.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_d16.py::test_acvp_vectors_have_provenance_and_scale FAILED [100%]
+
+================================== FAILURES ===================================
+_________________ test_acvp_vectors_have_provenance_and_scale _________________
+
+    def test_acvp_vectors_have_provenance_and_scale():
+        """
+        D-16: Verifies that tests/vectors/PROVENANCE.json exists with full git commit SHA,
+        verifiable file hashes from NIST ACVP-Server, and contains at least 25 keyGen cases
+        and at least 50 encapDecap cases for ML-KEM-768.
+        Must fail on v2.3.0 where only 4 handpicked decapsulation vectors existed without PROVENANCE.json.
+        """
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        prov_file = repo_root / "tests" / "vectors" / "PROVENANCE.json"
+    
+>       assert prov_file.exists(), "PROVENANCE.json must exist in tests/vectors/"
+E       AssertionError: PROVENANCE.json must exist in tests/vectors/
+E       assert False
+E        +  where False = exists()
+E        +    where exists = WindowsPath('/workspace/medpqc/tests/vectors/PROVENANCE.json').exists
+
+tests/adversarial/exploits/test_exploit_d16.py:19: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d16.py::test_acvp_vectors_have_provenance_and_scale - AssertionError: PROVENANCE.json must exist in tests/vectors/
+assert False
+ +  where False = exists()
+ +    where exists = WindowsPath('/workspace/medpqc/tests/vectors/PROVENANCE.json').exists
+============================== 1 failed in 0.83s ==============================
+
+=== STDERR ===
+

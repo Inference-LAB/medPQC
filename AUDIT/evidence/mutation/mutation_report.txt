@@ -1,0 +1,72 @@
+MedPQC Mutation Analysis Report
+Timestamp: 2026-11-02T08:31:58Z
+Duration: 189.35s
+Total Mutants Evaluated: 63
+Killed: 60
+Survived: 3
+Mutation Score: 95.24%
+
+--- Details by Mutant ---
+[KILLED] medpqc/kem/auth.py:98 | if private_key is None: -> if private_key is not None:
+[KILLED] medpqc/kem/auth.py:146 | and len(arg2) == 64 -> and len(arg2) != 64
+[KILLED] medpqc/kem/auth.py:147 | and (not isinstance(arg1, (bytes, bytearray)) or len(arg1) != 64) -> and (not isinstance(arg1, (bytes, bytearray)) or len(arg1) == 64)
+[KILLED] medpqc/kem/auth.py:155 | if not isinstance(pub_bytes, (bytes, bytearray)) or len(pub_bytes) != 32: -> if not isinstance(pub_bytes, (bytes, bytearray)) or len(pub_bytes) == 32:
+[KILLED] medpqc/kem/auth.py:156 | return False -> return True
+[KILLED] medpqc/kem/auth.py:158 | if not isinstance(signature, (bytes, bytearray)) or len(signature) != 64: -> if not isinstance(signature, (bytes, bytearray)) or len(signature) == 64:
+[KILLED] medpqc/kem/auth.py:159 | return False -> return True
+[KILLED] medpqc/kem/auth.py:162 | return False -> return True
+[KILLED] medpqc/kem/auth.py:167 | return True -> return False
+[KILLED] medpqc/kem/auth.py:169 | return False -> return True
+[KILLED] medpqc/kem/auth.py:174 | if passphrase is not None: -> if passphrase is None:
+[KILLED] medpqc/kem/auth.py:199 | if not isinstance(passphrase, (bytes, bytearray)) or len(passphrase) == 0: -> if not isinstance(passphrase, (bytes, bytearray)) or len(passphrase) != 0:
+[KILLED] medpqc/kem/combiner.py:79 | transcript_hash if transcript_hash is not None else b"", -> transcript_hash if transcript_hash is None else b"",
+[KILLED] medpqc/kem/combiner.py:111 | if len(k_ecdh) != 32 or len(k_pq) != 32: -> if len(k_ecdh) == 32 or len(k_pq) != 32:
+[KILLED] medpqc/kem/combiner.py:134 | effective_salt = salt if salt is not None else KDF_SALT_CONSTANT -> effective_salt = salt if salt is None else KDF_SALT_CONSTANT
+[KILLED] medpqc/kem/combiner.py:199 | if len(k_ecdh) != 32 or len(k_pq) != 32: -> if len(k_ecdh) == 32 or len(k_pq) != 32:
+[KILLED] medpqc/kem/combiner.py:203 | effective_salt = salt if salt is not None else KDF_SALT_CONSTANT -> effective_salt = salt if salt is None else KDF_SALT_CONSTANT
+[KILLED] medpqc/kem/combiner.py:204 | ctx = context if context is not None else info -> ctx = context if context is None else info
+[KILLED] medpqc/kem/combiner.py:206 | k_i2r = hkdf_sha512(ikm, effective_salt, ctx + b"|i2r", 32) -> k_i2r = hkdf_sha512(ikm, effective_salt, ctx - b"|i2r", 32)
+[KILLED] medpqc/kem/combiner.py:207 | k_r2i = hkdf_sha512(ikm, effective_salt, ctx + b"|r2i", 32) -> k_r2i = hkdf_sha512(ikm, effective_salt, ctx - b"|r2i", 32)
+[KILLED] medpqc/kem/combiner.py:208 | k_id = hkdf_sha512(ikm, effective_salt, ctx + b"|id", 16) -> k_id = hkdf_sha512(ikm, effective_salt, ctx - b"|id", 16)
+[KILLED] medpqc/kem/combiner.py:223 | if len(k_ecdh) != 32 or len(k_pq) != 32: -> if len(k_ecdh) == 32 or len(k_pq) != 32:
+[KILLED] medpqc/kem/combiner.py:227 | effective_salt = salt if salt is not None else KDF_SALT_CONSTANT -> effective_salt = salt if salt is None else KDF_SALT_CONSTANT
+[KILLED] medpqc/security/replay.py:56 | self._is_closed: bool = False -> self._is_closed: bool = True
+[KILLED] medpqc/security/replay.py:90 | self._is_closed = True -> self._is_closed = False
+[KILLED] medpqc/security/replay.py:115 | exp = timestamp_ms_or_expires if timestamp_ms_or_expires is not None else ts + 300_000 -> exp = timestamp_ms_or_expires if timestamp_ms_or_expires is None else ts + 300_000
+[KILLED] medpqc/security/replay.py:115 | exp = timestamp_ms_or_expires if timestamp_ms_or_expires is not None else ts + 300_000 -> exp = timestamp_ms_or_expires if timestamp_ms_or_expires is not None else ts - 300_000
+[SURVIVED] medpqc/security/replay.py:123 | ts = int(timestamp_ms_or_expires) if timestamp_ms_or_expires is not None else 0 -> ts = int(timestamp_ms_or_expires) if timestamp_ms_or_expires is None else 0
+[SURVIVED] medpqc/security/replay.py:124 | exp = int(expires_at_ms) if expires_at_ms is not None else ts + 300_000 -> exp = int(expires_at_ms) if expires_at_ms is None else ts + 300_000
+[SURVIVED] medpqc/security/replay.py:124 | exp = int(expires_at_ms) if expires_at_ms is not None else ts + 300_000 -> exp = int(expires_at_ms) if expires_at_ms is not None else ts - 300_000
+[KILLED] medpqc/security/replay.py:141 | cutoff = ts - (exp - ts) -> cutoff = ts + (exp - ts)
+[KILLED] medpqc/security/replay.py:144 | return False -> return True
+[KILLED] medpqc/security/replay.py:146 | return True -> return False
+[KILLED] medpqc/security/trust.py:56 | if len(public_key_bytes) != self.ED25519_KEY_LEN: -> if len(public_key_bytes) == self.ED25519_KEY_LEN:
+[KILLED] medpqc/security/trust.py:73 | if node_id not in self._nodes: -> if node_id in self._nodes:
+[KILLED] medpqc/security/trust.py:80 | "not_after": int(not_after) if not_after is not None else None, -> "not_after": int(not_after) if not_after is None else None,
+[KILLED] medpqc/security/trust.py:129 | return True -> return False
+[KILLED] medpqc/security/trust.py:131 | return False -> return True
+[KILLED] medpqc/security/trust.py:147 | if len(public_key_bytes) != self.ED25519_KEY_LEN: -> if len(public_key_bytes) == self.ED25519_KEY_LEN:
+[KILLED] medpqc/security/trust.py:150 | now = int(current_time) if current_time is not None else 0 -> now = int(current_time) if current_time is None else 0
+[KILLED] medpqc/security/trust.py:161 | match_found = False -> match_found = True
+[KILLED] medpqc/security/trust.py:163 | if cred["public_key"] == bytes(public_key_bytes): -> if cred["public_key"] != bytes(public_key_bytes):
+[KILLED] medpqc/security/trust.py:164 | if kid in self._revoked_keys or cred["status"] == "revoked": -> if kid in self._revoked_keys or cred["status"] != "revoked":
+[KILLED] medpqc/cipher/aead.py:41 | if not isinstance(aes_key, (bytes, bytearray)) or len(aes_key) != cls.KEY_LEN: -> if not isinstance(aes_key, (bytes, bytearray)) or len(aes_key) == cls.KEY_LEN:
+[KILLED] medpqc/cipher/aead.py:43 | if mac_key is not None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) != cls.KEY_LEN): -> if mac_key is not None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) == cls.KEY_LEN):
+[KILLED] medpqc/cipher/aead.py:43 | if mac_key is not None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) != cls.KEY_LEN): -> if mac_key is None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) != cls.KEY_LEN):
+[KILLED] medpqc/cipher/aead.py:46 | if nonce is None: -> if nonce is not None:
+[KILLED] medpqc/cipher/aead.py:48 | elif not isinstance(nonce, (bytes, bytearray)) or len(nonce) != cls.NONCE_LEN: -> elif not isinstance(nonce, (bytes, bytearray)) or len(nonce) == cls.NONCE_LEN:
+[KILLED] medpqc/cipher/aead.py:66 | if mac_key is not None: -> if mac_key is None:
+[KILLED] medpqc/cipher/aead.py:67 | mac_input = bytes(nonce) + len(aad).to_bytes(4, "big") + bytes(aad) + ciphertext + gcm_tag -> mac_input = bytes(nonce) - len(aad).to_bytes(4, "big") + bytes(aad) + ciphertext + gcm_tag
+[KILLED] medpqc/cipher/aead.py:84 | if not isinstance(aes_key, (bytes, bytearray)) or len(aes_key) != cls.KEY_LEN: -> if not isinstance(aes_key, (bytes, bytearray)) or len(aes_key) == cls.KEY_LEN:
+[KILLED] medpqc/cipher/aead.py:86 | if mac_key is not None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) != cls.KEY_LEN): -> if mac_key is not None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) == cls.KEY_LEN):
+[KILLED] medpqc/cipher/aead.py:86 | if mac_key is not None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) != cls.KEY_LEN): -> if mac_key is None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) != cls.KEY_LEN):
+[KILLED] medpqc/cipher/engine.py:40 | enable_scrambling: bool = False, -> enable_scrambling: bool = True,
+[KILLED] medpqc/cipher/engine.py:61 | if envelope_id is not None: -> if envelope_id is None:
+[KILLED] medpqc/cipher/engine.py:63 | if session_key_id is not None: -> if session_key_id is None:
+[KILLED] medpqc/cipher/engine.py:65 | if suite_id is not None: -> if suite_id is None:
+[KILLED] medpqc/cipher/engine.py:67 | if transfer_syntax_uid is not None: -> if transfer_syntax_uid is None:
+[KILLED] medpqc/cipher/engine.py:69 | if dataset_hash is not None: -> if dataset_hash is None:
+[KILLED] medpqc/cipher/engine.py:93 | if k_aes is None: -> if k_aes is not None:
+[KILLED] medpqc/cipher/engine.py:95 | elif not isinstance(k_aes, (bytes, bytearray)) or len(k_aes) != 32: -> elif not isinstance(k_aes, (bytes, bytearray)) or len(k_aes) == 32:
+[KILLED] medpqc/cipher/engine.py:97 | if k_mac is not None and (not isinstance(k_mac, (bytes, bytearray)) or len(k_mac) != 32): -> if k_mac is not None and (not isinstance(k_mac, (bytes, bytearray)) or len(k_mac) == 32):
+[KILLED] medpqc/cipher/engine.py:97 | if k_mac is not None and (not isinstance(k_mac, (bytes, bytearray)) or len(k_mac) != 32): -> if k_mac is None and (not isinstance(k_mac, (bytes, bytearray)) or len(k_mac) != 32):

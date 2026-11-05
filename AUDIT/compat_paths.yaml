@@ -1,0 +1,27 @@
+# MedPQC Compatibility Paths Accounting (N-03)
+# Explicit justification and test coverage mapping for retained backward-compatibility constructs.
+
+compat_paths:
+  - path: "medpqc/cipher/__init__.py"
+    reason: "Relocated experimental diffusion import shim (BitPlaneDiffusion) for non-breaking API."
+    test: "tests/test_smoke_imports.py::test_subpackage_all_exports_present[medpqc.cipher]"
+
+  - path: "medpqc/experimental/diffusion.py"
+    reason: "LorenzDiffusionEngine class alias for legacy pipeline migration."
+    test: "tests/unit/test_cipher_diffusion.py"
+
+  - path: "medpqc/kem/combiner.py"
+    reason: "RFC 5869 HKDF function aliases (hkdf_extract) and derive_session_keys_strict interface."
+    test: "tests/test_kem_combiner.py::test_hkdf_extract_and_expand_matches_rfc5869"
+
+  - path: "medpqc/security/replay.py"
+    reason: "MemoryReplayStore alias pointing to InMemoryReplayStoreForTestsAndDevelopment, and ReplayProtector helper."
+    test: "tests/unit/test_replay.py::test_memory_replay_store_alias"
+
+  - path: "medpqc/security/trust.py"
+    reason: "Alias revoke_identity pointing to revoke_node, and legacy credential dict ingestion in import_credentials."
+    test: "tests/unit/test_trust.py::test_trust_store_revocation_and_expiration"
+
+  - path: "medpqc/experimental/chaos/sponge.py"
+    reason: "Sponge squeeze parameter compatibility accepting either length or n_bytes."
+    test: "tests/test_chaos_sponge.py"

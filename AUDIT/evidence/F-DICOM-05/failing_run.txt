@@ -1,0 +1,50 @@
+Baseline Git Commit: 7367c26d05c2ef9ada3f7e2a0684362aa614e00d
+Command: python -m pytest tests/adversarial/exploits/test_exploit_f_dicom_05.py -v
+Exit Code: 1
+
+Captured Output:
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_f_dicom_05.py::test_canary_identifiers_absent_from_cleartext FAILED [100%]
+
+================================== FAILURES ===================================
+________________ test_canary_identifiers_absent_from_cleartext ________________
+
+    def test_canary_identifiers_absent_from_cleartext():
+        """
+        F-DICOM-05: None of the canary identifiers in standard, private, or sequence positions
+        may appear in cleartext in the encrypted DICOM file.
+        Must fail on v2.2 where private tags, study dates, and nested sequences leak into cleartext.
+        """
+        ds = create_synthetic_dicom(add_canary_sequences=True, add_private_tags=True)
+        canaries = get_all_canary_strings()
+        cipher = MedPQCCipher(b"0" * 32, b"1" * 32)
+    
+        with tempfile.TemporaryDirectory() as td:
+            src = os.path.join(td, "canary_src.dcm")
+            enc = os.path.join(td, "canary_enc.dcm")
+            ds.save_as(src)
+    
+            DICOMPACSEnvelope.encrypt_dicom_file(src, enc, cipher)
+    
+            with open(enc, "rb") as f:
+                raw_bytes = f.read()
+    
+            # In v2.2, private tag values (CANARY-PRIVATE-TAG-VALUE-7777) and study dates survive in cleartext
+            surviving = [canary for canary in canaries if canary.encode("utf-8") in raw_bytes]
+>           assert not surviving, f"Canaries leaked in cleartext in encrypted DICOM: {surviving}"
+E           AssertionError: Canaries leaked in cleartext in encrypted DICOM: ['CANARY-PROCEDURE-DESC', 'CANARY-PRIVATE-TAG-VALUE-7777', 'CANARY-PRIVATE-PERSON^EVE']
+E           assert not ['CANARY-PROCEDURE-DESC', 'CANARY-PRIVATE-TAG-VALUE-7777', 'CANARY-PRIVATE-PERSON^EVE']
+
+tests\adversarial\exploits\test_exploit_f_dicom_05.py:35: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_f_dicom_05.py::test_canary_identifiers_absent_from_cleartext - AssertionError: Canaries leaked in cleartext in encrypted DICOM: ['CANARY-PROCEDURE-DESC', 'CANARY-PRIVATE-TAG-VALUE-7777', 'CANARY-PRIVATE-PERSON^EVE']
+assert not ['CANARY-PROCEDURE-DESC', 'CANARY-PRIVATE-TAG-VALUE-7777', 'CANARY-PRIVATE-PERSON^EVE']
+============================== 1 failed in 5.99s ==============================

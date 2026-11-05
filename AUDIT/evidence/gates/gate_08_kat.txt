@@ -1,0 +1,7 @@
+Gate 8: NIST ACVP KAT Provenance
+Status: PASS
+Reason: SHA-256 verified against NIST ACVP commit 15c0f3d; 80 cases executed
+Expected Hash: 1888f452d9c79345a5c1b8372bc62b0869001c6558ae932bc6bab1605095ed56
+Actual Hash: 1888f452d9c79345a5c1b8372bc62b0869001c6558ae932bc6bab1605095ed56
+Total cases: 80
+Case counts: {'keyGen': 25, 'encap': 35, 'decap': 20}

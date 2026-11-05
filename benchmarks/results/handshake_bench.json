@@ -1,0 +1,32 @@
+[
+  {
+    "replay_backend": "MemoryReplayStore",
+    "iterations": 50,
+    "init_mean_ms": 0.53,
+    "init_std_ms": 0.08,
+    "resp_mean_ms": 1.53,
+    "resp_std_ms": 0.23,
+    "finalize_mean_ms": 1.09,
+    "finalize_std_ms": 0.17,
+    "total_handshake_ms": 3.14,
+    "total_handshake_p50_ms": 3.01,
+    "total_handshake_p95_ms": 3.79,
+    "handshakes_per_sec": 318.2,
+    "peak_memory_mb": 0.075
+  },
+  {
+    "replay_backend": "SqliteReplayStore",
+    "iterations": 50,
+    "init_mean_ms": 0.44,
+    "init_std_ms": 0.09,
+    "resp_mean_ms": 7.41,
+    "resp_std_ms": 0.65,
+    "finalize_mean_ms": 0.89,
+    "finalize_std_ms": 0.14,
+    "total_handshake_ms": 8.74,
+    "total_handshake_p50_ms": 8.68,
+    "total_handshake_p95_ms": 10.14,
+    "handshakes_per_sec": 114.4,
+    "peak_memory_mb": 0.066
+  }
+]

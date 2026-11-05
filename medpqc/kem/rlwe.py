@@ -2,158 +2,204 @@
 medpqc.kem.rlwe
 ================
 Post-Quantum Key Encapsulation Mechanism (KEM).
-Supports:
-  1. Standard FIPS 203 ML-KEM-768 (via liboqs if available)
-  2. Native Ring-LWE KEM over Z_3329[x]/(x^256 + 1) aligned with ML-KEM-512 parameters
-Generates 32-byte shared secret and ciphertext encapsulation.
+
+Implements standards-compliant NIST FIPS 203 ML-KEM-768:
+  - Security Level: NIST Category 3
+  - Public Encapsulation Key (ek) length: 1,184 bytes (Module-LWE, rank k=3)
+  - Ciphertext (c) length: 1,088 bytes
+  - Decapsulation Key (dk) length: 2,400 bytes
+  - Shared Secret (K) length: 32 bytes
+
+Backends:
+  1. `mlkem` (FIPS 203 standard provider)
+  2. `liboqs` (Open Quantum Safe, if installed)
 """
 
-import os
-import hashlib
-import secrets
-import numpy as np
-from typing import Tuple
+from typing import Any
 
-# Ring parameters matching the paper (q=3329, n=256, x^256 + 1)
-Q_PRIME = 3329
-N_DEG = 256
+# Check for standard FIPS 203 ML-KEM providers
+HAS_MLKEM = False
+try:
+    import mlkem
+    from mlkem import rust as mlkem_backend
 
-def _poly_mul_negacyclic(a: np.ndarray, b: np.ndarray, q: int = Q_PRIME) -> np.ndarray:
-    """Multiplication in Z_q[x]/(x^n + 1)."""
-    # Polynomial multiplication with reduction modulo x^n + 1
-    conv = np.convolve(a, b)
-    res = np.zeros(N_DEG, dtype=np.int64)
-    for i in range(len(conv)):
-        coeff = conv[i]
-        deg = i % N_DEG
-        sign = -1 if (i // N_DEG) % 2 == 1 else 1
-        res[deg] = (res[deg] + sign * coeff) % q
-    return (res % q).astype(np.int32)
+    HAS_MLKEM = True
+except ImportError:
+    HAS_MLKEM = False
 
-def _sample_cbd(eta: int = 2) -> np.ndarray:
-    """Centered Binomial Distribution sample with parameter eta=2."""
-    b_len = (N_DEG * 2 * eta) // 8
-    rand_bytes = secrets.token_bytes(b_len)
-    bits = np.unpackbits(np.frombuffer(rand_bytes, dtype=np.uint8))[:N_DEG * 2 * eta]
-    bits = bits.reshape(N_DEG, 2 * eta)
-    a = bits[:, :eta].sum(axis=1)
-    b = bits[:, eta:].sum(axis=1)
-    return (a.astype(np.int32) - b.astype(np.int32)) % Q_PRIME
+HAS_LIBOQS = False
+try:
+    import oqs
 
-class NativeRLWEKEM:
-    """
-    Self-contained Ring-LWE Key Encapsulation Mechanism.
-    Ring: Z_3329[x]/(x^256 + 1)
-    Public Key: (a, b = a*s + e)
-    Ciphertext: (u = a*r + e1, v = b*r + e2 + Encode(m))
-    Shared Secret: 32 bytes derived from m via SHA3-256
-    """
+    HAS_LIBOQS = True  # pragma: no cover - justification: optional liboqs dependency
+except ImportError:
+    HAS_LIBOQS = False
 
-    def __init__(self):
-        # Generate global / instance ring parameter a from seed
-        self.seed_a = secrets.token_bytes(32)
-        rng = np.random.default_rng(int.from_bytes(hashlib.sha3_256(self.seed_a).digest()[:8], 'big'))
-        self.a = rng.integers(0, Q_PRIME, size=N_DEG, dtype=np.int32)
+# Standard NIST FIPS 203 ML-KEM-768 parameters
+MLKEM768_EK_LEN = 1184
+MLKEM768_DK_LEN = 2400
+MLKEM768_CT_LEN = 1088
+MLKEM768_SS_LEN = 32
 
-        # Secret key s and error e
-        self.s = _sample_cbd(eta=2)
-        self.e = _sample_cbd(eta=2)
 
-        # b = a*s + e mod q
-        self.b = (_poly_mul_negacyclic(self.a, self.s) + self.e) % Q_PRIME
-
-    @property
-    def public_key_bytes(self) -> bytes:
-        """Export serialized public key (seed_a || b)."""
-        return self.seed_a + self.b.astype('<u2').tobytes()
-
-    @classmethod
-    def encapsulate(cls, peer_pub_bytes: bytes) -> Tuple[bytes, bytes]:
-        """
-        Encapsulate a random 32-byte shared secret to peer public key.
-        Returns: (ciphertext_bytes, shared_secret_32_bytes)
-        """
-        seed_a = peer_pub_bytes[:32]
-        b_peer = np.frombuffer(peer_pub_bytes[32:], dtype='<u2').astype(np.int32)
-
-        rng = np.random.default_rng(int.from_bytes(hashlib.sha3_256(seed_a).digest()[:8], 'big'))
-        a = rng.integers(0, Q_PRIME, size=N_DEG, dtype=np.int32)
-
-        # Random ephemeral secret r, e1, e2
-        r = _sample_cbd(eta=2)
-        e1 = _sample_cbd(eta=2)
-        e2 = _sample_cbd(eta=2)
-
-        # Message m in {0, 1}^256 (32 bytes)
-        m_bytes = secrets.token_bytes(32)
-        m_bits = np.unpackbits(np.frombuffer(m_bytes, dtype=np.uint8))
-        # Encode message to ring elements (0 -> 0, 1 -> round(q/2))
-        m_poly = (m_bits.astype(np.int32) * ((Q_PRIME + 1) // 2))
-
-        # u = a*r + e1
-        u = (_poly_mul_negacyclic(a, r) + e1) % Q_PRIME
-        # v = b*r + e2 + m_poly
-        v = (_poly_mul_negacyclic(b_peer, r) + e2 + m_poly) % Q_PRIME
-
-        ct_bytes = u.astype('<u2').tobytes() + v.astype('<u2').tobytes()
-        shared_secret = hashlib.sha3_256(m_bytes + ct_bytes).digest()
-        return ct_bytes, shared_secret
-
-    def decapsulate(self, ct_bytes: bytes) -> bytes:
-        """
-        Decapsulate ciphertext to recover the 32-byte shared secret.
-        """
-        half = N_DEG * 2
-        u = np.frombuffer(ct_bytes[:half], dtype='<u2').astype(np.int32)
-        v = np.frombuffer(ct_bytes[half:2*half], dtype='<u2').astype(np.int32)
-
-        # Decrypt noisy message: v - s*u mod q
-        noisy_m = (v - _poly_mul_negacyclic(u, self.s)) % Q_PRIME
-
-        # Decode noisy coefficients to nearest bit (closer to q/2 -> 1, closer to 0/q -> 0)
-        # Distance to 0 is min(x, q-x), distance to q/2 is abs(x - q/2)
-        q_half = Q_PRIME / 2.0
-        recovered_bits = np.zeros(N_DEG, dtype=np.uint8)
-        for i in range(N_DEG):
-            val = float(noisy_m[i])
-            dist_zero = min(val, Q_PRIME - val)
-            dist_half = abs(val - q_half)
-            recovered_bits[i] = 1 if dist_half < dist_zero else 0
-
-        m_bytes = np.packbits(recovered_bits).tobytes()
-        shared_secret = hashlib.sha3_256(m_bytes + ct_bytes).digest()
-        return shared_secret
+class KEMError(Exception):
+    """Raised for any key encapsulation or decapsulation failure."""
 
 
 class PostQuantumKEM:
-    """Unified wrapper supporting liboqs ML-KEM-768 with fallback to Native RLWE."""
+    """
+    Standards-Compliant NIST FIPS 203 ML-KEM-768 Key Encapsulation.
+    Never performs silent insecure fallbacks.
+    """
 
-    def __init__(self, alg_name: str = "ML-KEM-768"):
+    def __init__(self, alg_name: str = "ML-KEM-768", prefer_liboqs: bool = False) -> None:
         self.alg_name = alg_name
-        self._liboqs_kem = None
-        self._native_kem = None
+        self._backend_type: str | None = None
+        self._mlkem_instance: Any = None
+        self._dk: Any = None
+        self._ek: Any = None
+        self.public_key_bytes: bytes = b""
 
-        try:
-            import oqs  # pragma: no cover
-            if alg_name in oqs.get_enabled_KEM_mechanisms():  # pragma: no cover
-                self._liboqs_kem = oqs.KeyEncapsulation(alg_name)
-                self.public_key_bytes = self._liboqs_kem.generate_keypair()
+        # 1. Try liboqs if preferred and available
+        if prefer_liboqs and HAS_LIBOQS:  # pragma: no cover - justification: optional liboqs not installed
+            if alg_name in oqs.get_enabled_KEM_mechanisms():
+                self._backend_type = "liboqs"
+                self._oqs_kem = oqs.KeyEncapsulation(alg_name)
+                self.public_key_bytes = self._oqs_kem.generate_keypair()
                 return
-        except ImportError:
-            pass
 
-        # Fallback to Native RLWE KEM
-        self._native_kem = NativeRLWEKEM()
-        self.public_key_bytes = self._native_kem.public_key_bytes
+        # 2. Standard FIPS 203 mlkem provider
+        if HAS_MLKEM and alg_name == "ML-KEM-768":
+            self._backend_type = "fips-203-mlkem"
+            try:
+                self._mlkem_instance = mlkem_backend.ML_KEM(mlkem_backend.ParameterSet.ML_KEM_768)
+                ek, dk = self._mlkem_instance.key_gen()
+                self._ek = ek
+                self._dk = dk
+                self.public_key_bytes = bytes(ek)
+            except (TypeError, ValueError, RuntimeError) as e:
+                raise KEMError("ML-KEM-768 key generation failed.") from e
 
-    def encapsulate(self, peer_pub_bytes: bytes) -> Tuple[bytes, bytes]:
-        if self._liboqs_kem is not None:  # pragma: no cover
-            import oqs
-            client = oqs.KeyEncapsulation(self.alg_name)
-            return client.encap_secret(peer_pub_bytes)
-        return NativeRLWEKEM.encapsulate(peer_pub_bytes)
+            if len(self.public_key_bytes) != MLKEM768_EK_LEN:
+                raise KEMError(f"Unexpected ML-KEM-768 public key size: {len(self.public_key_bytes)}")
+            return
 
-    def decapsulate(self, ciphertext: bytes) -> bytes:
-        if self._liboqs_kem is not None:  # pragma: no cover
-            return self._liboqs_kem.decap_secret(ciphertext)
-        return self._native_kem.decapsulate(ciphertext)
+        # 3. Fallback to liboqs if available
+        if (
+            HAS_LIBOQS and alg_name in oqs.get_enabled_KEM_mechanisms()
+        ):  # pragma: no cover - justification: optional liboqs not installed
+            self._backend_type = "liboqs"
+            self._oqs_kem = oqs.KeyEncapsulation(alg_name)
+            self.public_key_bytes = self._oqs_kem.generate_keypair()
+            return
+
+        # Explicit failure: No silent toy fallback
+        raise KEMError(
+            f"FIPS 203 compliant {alg_name} backend not available. "
+            "Please ensure 'mlkem' is installed: pip install mlkem"
+        )
+
+    @property
+    def backend(self) -> str:
+        """Returns the active post-quantum provider backend."""
+        return self._backend_type or "none"
+
+    @property
+    def provider_info(self) -> dict[str, str]:
+        """Metadata regarding provider backend and NIST specification."""
+        provider_version = "unknown"
+        if HAS_MLKEM:
+            provider_version = getattr(mlkem, "__version__", "0.2.0")
+        return {
+            "algorithm": self.alg_name,
+            "backend": self._backend_type or "none",
+            "provider_package": "mlkem" if self._backend_type == "fips-203-mlkem" else "liboqs",
+            "provider_version": str(provider_version),
+            "standard": "NIST FIPS 203 (Final August 2024)",
+            "module_rank_k": "3",
+            "public_key_len": str(MLKEM768_EK_LEN),
+            "ciphertext_len": str(MLKEM768_CT_LEN),
+            "shared_secret_len": str(MLKEM768_SS_LEN),
+        }
+
+    @classmethod
+    def encapsulate_to_peer(cls, peer_pub_bytes: bytes) -> tuple[bytes, bytes]:
+        """
+        Encapsulates a shared secret to peer's ML-KEM-768 public key without generating
+        a local throwaway keypair.
+        Returns: (ciphertext_bytes [1,088 bytes], shared_secret_bytes [32 bytes])
+        """
+        if not isinstance(peer_pub_bytes, (bytes, bytearray)):
+            raise TypeError(f"Expected bytes for peer_pub_bytes, got {type(peer_pub_bytes).__name__}")
+        if len(peer_pub_bytes) != MLKEM768_EK_LEN:
+            raise KEMError(
+                f"Invalid ML-KEM-768 public key length: {len(peer_pub_bytes)} bytes. "
+                f"Expected exactly {MLKEM768_EK_LEN} bytes according to NIST FIPS 203."
+            )
+
+        if HAS_MLKEM:
+            try:
+                ek_obj = mlkem_backend.EncapsKey.from_bytes(bytes(peer_pub_bytes))
+                inst = mlkem_backend.ML_KEM(mlkem_backend.ParameterSet.ML_KEM_768)
+                shared_secret, ciphertext = inst.encaps(ek_obj)
+            except (TypeError, ValueError, RuntimeError) as e:
+                raise KEMError("ML-KEM-768 encapsulation failed.") from e
+
+            if len(ciphertext) != MLKEM768_CT_LEN or len(shared_secret) != MLKEM768_SS_LEN:
+                raise KEMError("ML-KEM-768 encapsulation produced invalid byte lengths.")
+            return bytes(ciphertext), bytes(shared_secret)
+
+        if HAS_LIBOQS:  # pragma: no cover - justification: optional liboqs not installed
+            try:
+                client = oqs.KeyEncapsulation("ML-KEM-768")
+                ct, ss = client.encap_secret(bytes(peer_pub_bytes))
+                return ct, ss
+            except (TypeError, ValueError, RuntimeError) as e:
+                raise KEMError("liboqs ML-KEM-768 encapsulation failed.") from e
+
+        raise KEMError("No standard FIPS 203 ML-KEM backend available for encapsulation.")
+
+    def encapsulate(self, peer_pub_bytes: bytes) -> tuple[bytes, bytes]:
+        """Instance encapsulation delegating to validate peer public key."""
+        return self.encapsulate_to_peer(peer_pub_bytes)
+
+    def decapsulate(self, ciphertext: bytes, dk: bytes | None = None) -> bytes:
+        """
+        Decapsulate ciphertext to recover the 32-byte shared secret.
+        """
+        if not isinstance(ciphertext, (bytes, bytearray)):
+            raise TypeError(f"Expected bytes for ciphertext, got {type(ciphertext).__name__}")
+        if len(ciphertext) != MLKEM768_CT_LEN:
+            raise KEMError(
+                f"Invalid ML-KEM-768 ciphertext length: {len(ciphertext)} bytes. "
+                f"Expected exactly {MLKEM768_CT_LEN} bytes according to NIST FIPS 203."
+            )
+
+        decaps_key = self._dk
+        if dk is not None:
+            if not isinstance(dk, (bytes, bytearray)) or len(dk) != MLKEM768_DK_LEN:
+                raise KEMError(
+                    f"Invalid ML-KEM-768 decapsulation key length: {len(dk) if isinstance(dk, (bytes, bytearray)) else 'invalid'} bytes. "
+                    f"Expected exactly {MLKEM768_DK_LEN} bytes."
+                )
+            if HAS_MLKEM:
+                try:
+                    decaps_key = mlkem_backend.DecapsKey.from_bytes(bytes(dk))
+                except (TypeError, ValueError, RuntimeError) as e:
+                    raise KEMError("Invalid ML-KEM-768 decapsulation key format.") from e
+
+        if self._backend_type == "fips-203-mlkem" or (HAS_MLKEM and dk is not None):
+            try:
+                inst = self._mlkem_instance or mlkem_backend.ML_KEM(mlkem_backend.ParameterSet.ML_KEM_768)
+                shared_secret = inst.decaps(decaps_key, bytes(ciphertext))
+                return bytes(shared_secret)
+            except (TypeError, ValueError, RuntimeError) as e:
+                raise KEMError("ML-KEM-768 decapsulation failed.") from e
+
+        if self._backend_type == "liboqs":  # pragma: no cover - justification: optional liboqs not installed
+            try:
+                return bytes(self._oqs_kem.decap_secret(bytes(ciphertext)))
+            except (TypeError, ValueError, RuntimeError) as e:
+                raise KEMError("liboqs ML-KEM-768 decapsulation failed.") from e
+
+        raise KEMError("No standard FIPS 203 ML-KEM backend available for decapsulation.")

@@ -1,0 +1,90 @@
+=== Baseline Execution for N-14 (tag v2.4.0) ===
+Command: python -m pytest test_exploit_n14.py -v
+Exit Code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n14.py::test_forbidden_claims_scanner FAILED [100%]
+
+================================== FAILURES ===================================
+________________________ test_forbidden_claims_scanner ________________________
+
+    def test_forbidden_claims_scanner():
+        """N-14: Scans README, docs/, AUDIT/, benchmarks/REPORT.md, CHANGELOG.md for un-negated forbidden terms."""
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        targets = [
+            repo_root / "README.md",
+            repo_root / "CHANGELOG.md",
+            repo_root / "benchmarks" / "REPORT.md",
+        ]
+        targets.extend((repo_root / "docs").rglob("*.md"))
+        targets.extend((repo_root / "AUDIT").rglob("*.md"))
+        targets.extend((repo_root / "AUDIT").glob("*.yaml"))
+    
+        all_violations = []
+        for path in targets:
+            if path.exists():
+                text = path.read_text(encoding="utf-8", errors="ignore")
+                violations = _check_forbidden_in_text(text, path.name)
+                all_violations.extend(violations)
+    
+>       assert not all_violations, f"Found {len(all_violations)} un-negated forbidden claims:\n" + "\n".join(all_violations)
+E       AssertionError: Found 22 un-negated forbidden claims:
+E         README.md (near line 54): un-negated 'conforms' -> '**Standardized NIST FIPS 203 ML-KEM-768**: Key encapsulation conforms to Module-'
+E         CHANGELOG.md (near line 29): un-negated 'production' -> 'Removed default in-memory replay stores from production APIs'
+E         CHANGELOG.md (near line 145): un-negated 'production' -> 'Removed all unsupported assertions of production readiness, formal IND-CCA2 secu'
+E         ARCHITECTURE.md (near line 71): un-negated 'HIPAA' -> '|  - Recursive Sequence PHI De-identification (HIPAA PS 3'
+E         DICOM_ENCRYPTED_OBJECT_SPECIFICATION.md (near line 126): un-negated 'conforms' -> 'The JSON payload inside Private Tag `(0x0029, 0x1010)` conforms to the following'
+E         LIMITATIONS.md (near line 18): un-negated 'Forward Secrecy' -> '- **Classical P-256 ECDH**: Combined with ML-KEM-768 via HKDF-SHA-512 to provide'
+E         THREAT_MODEL.md (near line 17): un-negated 'HIPAA' -> '| **Patient Demographics (PHI)** | Critical (Confidentiality & Compliance) | Ide'
+E         THREAT_MODEL.md (near line 20): un-negated 'Forward Secrecy' -> '| **Ephemeral Session Keys** | Critical (Forward Secrecy) | Decryption of clinic'
+E         THREAT_MODEL.md (near line 75): un-negated 'compliant' -> '| **Multi-Worker Server Replay Attack** | In-memory cache reset across process r'
+E         BASELINE_AUDIT.md (near line 25): un-negated 'production' -> 'The investigation confirmed that despite previous remediation passes, multiple C'
+E         BASELINE_AUDIT.md (near line 115): un-negated '100%' -> '- **Exclusion Analysis**: The claim of 100% test coverage in v2'
+E         BASELINE_AUDIT.md (near line 266): un-negated 'production' -> 'py` | Chaotic scrambling is enabled by default; experimental code integrated int'
+E         INDEPENDENT_REVIEW.md (near line 165): un-negated 'HIPAA' -> 'MedPQC provides cryptographic algorithms and de-identification utilities; organi'
+E         RELEASE_READINESS.md (near line 21): un-negated 'OPEN' -> '| **OPEN** | 0 | Unresolved finding under active investigation'
+E         REMEDIATION_LEDGER.md (near line 910): un-negated 'production' -> '- **Original Problem**: Documentation contained unverified formal security claim'
+E         REMEDIATION_LEDGER.md (near line 950): un-negated '100%' -> '- **Original Problem**: Audit reports claimed 100% criteria satisfaction with au'
+E         SECURITY_AUDIT_REPORT.md (near line 95): un-negated 'Forward Secrecy' -> '| **Classical KEM** | NIST SP 800-56A | P-256 (secp256r1) | Classical Forward Se'
+E         TEST_REPORT.md (near line 42): un-negated '100%' -> '| **Total** | **All Test Tiers** | **196** | **100% PASSED** |'
+E         TEST_REPORT.md (near line 49): un-negated 'production' -> 'Statement coverage measured across all 26 production modules without artificial '
+E         cycle_1.md (near line 121): un-negated 'OPEN' -> 'Remaining Open Items & Status Assessment'
+E         ledger.yaml (near line 704): un-negated 'production' -> 'original_problem: "Documentation contained unverified formal security claims, re'
+E         ledger.yaml (near line 743): un-negated '100%' -> 'original_problem: "Audit reports claimed 100% criteria satisfaction with author '
+E       assert not ["README.md (near line 54): un-negated 'conforms' -> '**Standardized NIST FIPS 203 ML-KEM-768**: Key encapsulation conforms to Module-'", "CHANGELOG.md (near line 29): un-negated 'production' -> 'Removed default in-memory replay stores from production APIs'", "CHANGELOG.md (near line 145): un-negated 'production' -> 'Removed all unsupported assertions of production readiness, formal IND-CCA2 secu'", "ARCHITECTURE.md (near line 71): un-negated 'HIPAA' -> '|  - Recursive Sequence PHI De-identification (HIPAA PS 3'", "DICOM_ENCRYPTED_OBJECT_SPECIFICATION.md (near line 126): un-negated 'conforms' -> 'The JSON payload inside Private Tag `(0x0029, 0x1010)` conforms to the following'", "LIMITATIONS.md (near line 18): un-negated 'Forward Secrecy' -> '- **Classical P-256 ECDH**: Combined with ML-KEM-768 via HKDF-SHA-512 to provide'", "THREAT_MODEL.md (near line 17): un-negated 'HIPAA' -> '| **Patient Demographics (PHI)** | Critical (Confidentiality & Compliance) | Ide'", "THREAT_MODEL.md (near line 20): un-negated 'Forward Secrecy' -> '| **Ephemeral Session Keys** | Critical (Forward Secrecy) | Decryption of clinic'", "THREAT_MODEL.md (near line 75): un-negated 'compliant' -> '| **Multi-Worker Server Replay Attack** | In-memory cache reset across process r'", "BASELINE_AUDIT.md (near line 25): un-negated 'production' -> 'The investigation confirmed that despite previous remediation passes, multiple C'", "BASELINE_AUDIT.md (near line 115): un-negated '100%' -> '- **Exclusion Analysis**: The claim of 100% test coverage in v2'", "BASELINE_AUDIT.md (near line 266): un-negated 'production' -> 'py` | Chaotic scrambling is enabled by default; experimental code integrated int'", "INDEPENDENT_REVIEW.md (near line 165): un-negated 'HIPAA' -> 'MedPQC provides cryptographic algorithms and de-identification utilities; organi'", "RELEASE_READINESS.md (near line 21): un-negated 'OPEN' -> '| **OPEN** | 0 | Unresolved finding under active investigation'", "REMEDIATION_LEDGER.md (near line 910): un-negated 'production' -> '- **Original Problem**: Documentation contained unverified formal security claim'", "REMEDIATION_LEDGER.md (near line 950): un-negated '100%' -> '- **Original Problem**: Audit reports claimed 100% criteria satisfaction with au'", "SECURITY_AUDIT_REPORT.md (near line 95): un-negated 'Forward Secrecy' -> '| **Classical KEM** | NIST SP 800-56A | P-256 (secp256r1) | Classical Forward Se'", "TEST_REPORT.md (near line 42): un-negated '100%' -> '| **Total** | **All Test Tiers** | **196** | **100% PASSED** |'", "TEST_REPORT.md (near line 49): un-negated 'production' -> 'Statement coverage measured across all 26 production modules without artificial '", "cycle_1.md (near line 121): un-negated 'OPEN' -> 'Remaining Open Items & Status Assessment'", 'ledger.yaml (near line 704): un-negated \'production\' -> \'original_problem: "Documentation contained unverified formal security claims, re\'', 'ledger.yaml (near line 743): un-negated \'100%\' -> \'original_problem: "Audit reports claimed 100% criteria satisfaction with author \'']
+
+..\medpqc\tests\adversarial\exploits\test_exploit_n14.py:80: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\medpqc\tests\adversarial\exploits\test_exploit_n14.py::test_forbidden_claims_scanner - AssertionError: Found 22 un-negated forbidden claims:
+  README.md (near line 54): un-negated 'conforms' -> '**Standardized NIST FIPS 203 ML-KEM-768**: Key encapsulation conforms to Module-'
+  CHANGELOG.md (near line 29): un-negated 'production' -> 'Removed default in-memory replay stores from production APIs'
+  CHANGELOG.md (near line 145): un-negated 'production' -> 'Removed all unsupported assertions of production readiness, formal IND-CCA2 secu'
+  ARCHITECTURE.md (near line 71): un-negated 'HIPAA' -> '|  - Recursive Sequence PHI De-identification (HIPAA PS 3'
+  DICOM_ENCRYPTED_OBJECT_SPECIFICATION.md (near line 126): un-negated 'conforms' -> 'The JSON payload inside Private Tag `(0x0029, 0x1010)` conforms to the following'
+  LIMITATIONS.md (near line 18): un-negated 'Forward Secrecy' -> '- **Classical P-256 ECDH**: Combined with ML-KEM-768 via HKDF-SHA-512 to provide'
+  THREAT_MODEL.md (near line 17): un-negated 'HIPAA' -> '| **Patient Demographics (PHI)** | Critical (Confidentiality & Compliance) | Ide'
+  THREAT_MODEL.md (near line 20): un-negated 'Forward Secrecy' -> '| **Ephemeral Session Keys** | Critical (Forward Secrecy) | Decryption of clinic'
+  THREAT_MODEL.md (near line 75): un-negated 'compliant' -> '| **Multi-Worker Server Replay Attack** | In-memory cache reset across process r'
+  BASELINE_AUDIT.md (near line 25): un-negated 'production' -> 'The investigation confirmed that despite previous remediation passes, multiple C'
+  BASELINE_AUDIT.md (near line 115): un-negated '100%' -> '- **Exclusion Analysis**: The claim of 100% test coverage in v2'
+  BASELINE_AUDIT.md (near line 266): un-negated 'production' -> 'py` | Chaotic scrambling is enabled by default; experimental code integrated int'
+  INDEPENDENT_REVIEW.md (near line 165): un-negated 'HIPAA' -> 'MedPQC provides cryptographic algorithms and de-identification utilities; organi'
+  RELEASE_READINESS.md (near line 21): un-negated 'OPEN' -> '| **OPEN** | 0 | Unresolved finding under active investigation'
+  REMEDIATION_LEDGER.md (near line 910): un-negated 'production' -> '- **Original Problem**: Documentation contained unverified formal security claim'
+  REMEDIATION_LEDGER.md (near line 950): un-negated '100%' -> '- **Original Problem**: Audit reports claimed 100% criteria satisfaction with au'
+  SECURITY_AUDIT_REPORT.md (near line 95): un-negated 'Forward Secrecy' -> '| **Classical KEM** | NIST SP 800-56A | P-256 (secp256r1) | Classical Forward Se'
+  TEST_REPORT.md (near line 42): un-negated '100%' -> '| **Total** | **All Test Tiers** | **196** | **100% PASSED** |'
+  TEST_REPORT.md (near line 49): un-negated 'production' -> 'Statement coverage measured across all 26 production modules without artificial '
+  cycle_1.md (near line 121): un-negated 'OPEN' -> 'Remaining Open Items & Status Assessment'
+  ledger.yaml (near line 704): un-negated 'production' -> 'original_problem: "Documentation contained unverified formal security claims, re'
+  ledger.yaml (near line 743): un-negated '100%' -> 'original_problem: "Audit reports claimed 100% criteria satisfaction with author '
+assert not ["README.md (near line 54): un-negated 'conforms' -> '**Standardized NIST FIPS 203 ML-KEM-768**: Key encapsulation conforms to Module-'", "CHANGELOG.md (near line 29): un-negated 'production' -> 'Removed default in-memory replay stores from production APIs'", "CHANGELOG.md (near line 145): un-negated 'production' -> 'Removed all unsupported assertions of production readiness, formal IND-CCA2 secu'", "ARCHITECTURE.md (near line 71): un-negated 'HIPAA' -> '|  - Recursive Sequence PHI De-identification (HIPAA PS 3'", "DICOM_ENCRYPTED_OBJECT_SPECIFICATION.md (near line 126): un-negated 'conforms' -> 'The JSON payload inside Private Tag `(0x0029, 0x1010)` conforms to the following'", "LIMITATIONS.md (near line 18): un-negated 'Forward Secrecy' -> '- **Classical P-256 ECDH**: Combined with ML-KEM-768 via HKDF-SHA-512 to provide'", "THREAT_MODEL.md (near line 17): un-negated 'HIPAA' -> '| **Patient Demographics (PHI)** | Critical (Confidentiality & Compliance) | Ide'", "THREAT_MODEL.md (near line 20): un-negated 'Forward Secrecy' -> '| **Ephemeral Session Keys** | Critical (Forward Secrecy) | Decryption of clinic'", "THREAT_MODEL.md (near line 75): un-negated 'compliant' -> '| **Multi-Worker Server Replay Attack** | In-memory cache reset across process r'", "BASELINE_AUDIT.md (near line 25): un-negated 'production' -> 'The investigation confirmed that despite previous remediation passes, multiple C'", "BASELINE_AUDIT.md (near line 115): un-negated '100%' -> '- **Exclusion Analysis**: The claim of 100% test coverage in v2'", "BASELINE_AUDIT.md (near line 266): un-negated 'production' -> 'py` | Chaotic scrambling is enabled by default; experimental code integrated int'", "INDEPENDENT_REVIEW.md (near line 165): un-negated 'HIPAA' -> 'MedPQC provides cryptographic algorithms and de-identification utilities; organi'", "RELEASE_READINESS.md (near line 21): un-negated 'OPEN' -> '| **OPEN** | 0 | Unresolved finding under active investigation'", "REMEDIATION_LEDGER.md (near line 910): un-negated 'production' -> '- **Original Problem**: Documentation contained unverified formal security claim'", "REMEDIATION_LEDGER.md (near line 950): un-negated '100%' -> '- **Original Problem**: Audit reports claimed 100% criteria satisfaction with au'", "SECURITY_AUDIT_REPORT.md (near line 95): un-negated 'Forward Secrecy' -> '| **Classical KEM** | NIST SP 800-56A | P-256 (secp256r1) | Classical Forward Se'", "TEST_REPORT.md (near line 42): un-negated '100%' -> '| **Total** | **All Test Tiers** | **196** | **100% PASSED** |'", "TEST_REPORT.md (near line 49): un-negated 'production' -> 'Statement coverage measured across all 26 production modules without artificial '", "cycle_1.md (near line 121): un-negated 'OPEN' -> 'Remaining Open Items & Status Assessment'", 'ledger.yaml (near line 704): un-negated \'production\' -> \'original_problem: "Documentation contained unverified formal security claims, re\'', 'ledger.yaml (near line 743): un-negated \'100%\' -> \'original_problem: "Audit reports claimed 100% criteria satisfaction with author \'']
+============================== 1 failed in 0.95s ==============================

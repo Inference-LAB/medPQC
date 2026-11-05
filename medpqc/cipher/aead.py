@@ -1,65 +1,121 @@
 """
 medpqc.cipher.aead
 ==================
-Authenticated Encryption with Associated Data (AEAD).
-Combines AES-256-GCM (NIST SP 800-38D) with outer HMAC-SHA3-256 for key commitment.
+Authenticated Encryption with Associated Data (AEAD) via AES-256-GCM (NIST SP 800-38D).
+
+Employs the standardized, hardware-accelerated AESGCM primitive from the
+`cryptography` library. Cryptographically binds Associated Authenticated Data (AAD)
+to prevent any envelope reconstruction metadata tampering.
 """
 
-import hmac
 import hashlib
+import hmac
 import secrets
-from typing import Dict, Any
-from Crypto.Cipher import AES
+
+from cryptography.exceptions import InvalidTag
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+from ..utils.limits import DecryptionError
+
 
 class AuthenticatedCipher:
-    """Provides IND-CCA2 and INT-CTXT authenticated encryption."""
+    """Provides authenticated encryption with strict AAD binding via AES-256-GCM."""
 
-    @staticmethod
-    def encrypt(data_bytes: bytes, aes_key: bytes, mac_key: bytes) -> Dict[str, bytes]:
+    NONCE_LEN: int = 12
+    KEY_LEN: int = 32
+    TAG_LEN: int = 16
+
+    @classmethod
+    def encrypt(
+        cls,
+        data_bytes: bytes,
+        aes_key: bytes,
+        mac_key: bytes | None = None,
+        aad: bytes = b"",
+        nonce: bytes | None = None,
+    ) -> dict[str, bytes]:
         """
-        Encrypts plaintext bytes with AES-256-GCM and computes outer HMAC key commitment.
-        Returns: {
-            'nonce': 12 bytes,
-            'ciphertext': bytes,
-            'gcm_tag': 16 bytes,
-            'outer_mac': 32 bytes
+        Encrypts plaintext bytes with AES-256-GCM and binds Associated Authenticated Data (AAD).
+        Enforces a 96-bit (12-byte) random nonce per NIST SP 800-38D.
+        """
+        if not isinstance(aes_key, (bytes, bytearray)) or len(aes_key) != cls.KEY_LEN:
+            raise ValueError(f"Invalid AES key length: {len(aes_key) if aes_key else 0}. Expected {cls.KEY_LEN} bytes.")
+        if mac_key is not None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) != cls.KEY_LEN):
+            raise ValueError(f"Invalid MAC key length: {len(mac_key)}. Expected {cls.KEY_LEN} bytes.")
+
+        if nonce is None:
+            nonce = secrets.token_bytes(cls.NONCE_LEN)
+        elif not isinstance(nonce, (bytes, bytearray)) or len(nonce) != cls.NONCE_LEN:
+            raise ValueError(f"Invalid nonce length: {len(nonce)}. Expected exactly {cls.NONCE_LEN} bytes.")
+
+        if not isinstance(data_bytes, (bytes, bytearray)):
+            raise TypeError("data_bytes must be bytes or bytearray")
+
+        aesgcm = AESGCM(bytes(aes_key))
+        ct_with_tag = aesgcm.encrypt(bytes(nonce), bytes(data_bytes), bytes(aad) if aad else None)
+
+        ciphertext = ct_with_tag[: -cls.TAG_LEN]
+        gcm_tag = ct_with_tag[-cls.TAG_LEN :]
+
+        bundle: dict[str, bytes] = {
+            "nonce": bytes(nonce),
+            "ciphertext": ciphertext,
+            "gcm_tag": gcm_tag,
         }
+
+        if mac_key is not None:
+            mac_input = bytes(nonce) + len(aad).to_bytes(4, "big") + bytes(aad) + ciphertext + gcm_tag
+            bundle["outer_mac"] = hmac.new(bytes(mac_key), mac_input, hashlib.sha3_256).digest()
+
+        return bundle
+
+    @classmethod
+    def decrypt(
+        cls,
+        bundle: dict[str, bytes],
+        aes_key: bytes,
+        mac_key: bytes | None = None,
+        aad: bytes = b"",
+    ) -> bytes:
         """
-        nonce = secrets.token_bytes(12)
-        cipher = AES.new(aes_key, AES.MODE_GCM, nonce=nonce)
-        ciphertext, gcm_tag = cipher.encrypt_and_digest(data_bytes)
-
-        # Outer HMAC: authenticates the full bundle (nonce || ciphertext || tag)
-        mac_input = nonce + ciphertext + gcm_tag
-        outer_mac = hmac.new(mac_key, mac_input, hashlib.sha3_256).digest()
-
-        return {
-            'nonce': nonce,
-            'ciphertext': ciphertext,
-            'gcm_tag': gcm_tag,
-            'outer_mac': outer_mac
-        }
-
-    @staticmethod
-    def decrypt(bundle: Dict[str, bytes], aes_key: bytes, mac_key: bytes) -> bytes:
+        Verifies GCM authentication tag and decrypts ciphertext with bound AAD.
+        Raises AuthenticationError / ValueError on any authentication or ciphertext tampering.
         """
-        Verifies outer HMAC and GCM tag before decrypting (Verify-then-Decrypt).
-        Raises ValueError on any authentication or tampering failure.
-        """
-        nonce = bundle['nonce']
-        ciphertext = bundle['ciphertext']
-        gcm_tag = bundle['gcm_tag']
-        outer_mac = bundle['outer_mac']
+        if not isinstance(aes_key, (bytes, bytearray)) or len(aes_key) != cls.KEY_LEN:
+            raise ValueError(f"Invalid AES key length: {len(aes_key) if aes_key else 0}. Expected {cls.KEY_LEN} bytes.")
+        if mac_key is not None and (not isinstance(mac_key, (bytes, bytearray)) or len(mac_key) != cls.KEY_LEN):
+            raise ValueError(f"Invalid MAC key length: {len(mac_key)}. Expected {cls.KEY_LEN} bytes.")
 
-        # 1. Fast outer HMAC verification (protects against oracle attacks)
-        expected_mac = hmac.new(mac_key, nonce + ciphertext + gcm_tag, hashlib.sha3_256).digest()
-        if not hmac.compare_digest(expected_mac, outer_mac):
-            raise ValueError("OUTER_HMAC_FAIL: Tampering detected or invalid MAC key.")
+        if not isinstance(bundle, dict):
+            raise ValueError("AEAD bundle must be a dictionary.")
 
-        # 2. AES-256-GCM tag verification & decryption
+        nonce = bundle.get("nonce")
+        ciphertext = bundle.get("ciphertext")
+        gcm_tag = bundle.get("gcm_tag")
+        outer_mac = bundle.get("outer_mac")
+
+        if not isinstance(nonce, (bytes, bytearray)) or len(nonce) != cls.NONCE_LEN:
+            raise ValueError(f"Invalid nonce in AEAD bundle: expected {cls.NONCE_LEN} bytes.")
+        if not isinstance(ciphertext, (bytes, bytearray)):
+            raise ValueError("Missing or invalid ciphertext in AEAD bundle.")
+        if not isinstance(gcm_tag, (bytes, bytearray)) or len(gcm_tag) != cls.TAG_LEN:
+            raise ValueError(f"Invalid GCM tag in AEAD bundle: expected {cls.TAG_LEN} bytes.")
+
+        # Verify outer HMAC if present
+        if outer_mac is not None and mac_key is not None:
+            if not isinstance(outer_mac, (bytes, bytearray)) or len(outer_mac) != 32:
+                raise ValueError("Invalid outer MAC in AEAD bundle.")
+            mac_input = bytes(nonce) + len(aad).to_bytes(4, "big") + bytes(aad) + bytes(ciphertext) + bytes(gcm_tag)
+            expected_mac = hmac.new(bytes(mac_key), mac_input, hashlib.sha3_256).digest()
+            if not hmac.compare_digest(expected_mac, bytes(outer_mac)):
+                raise ValueError("OUTER_HMAC_FAIL: Tampering detected or invalid MAC key.")
+
+        ct_with_tag = bytes(ciphertext) + bytes(gcm_tag)
+        aesgcm = AESGCM(bytes(aes_key))
+
         try:
-            cipher = AES.new(aes_key, AES.MODE_GCM, nonce=nonce)
-            plaintext = cipher.decrypt_and_verify(ciphertext, gcm_tag)
-            return plaintext
-        except ValueError:
-            raise ValueError("GCM_TAG_FAIL: Ciphertext corrupted or wrong AES key.")
+            return aesgcm.decrypt(bytes(nonce), ct_with_tag, bytes(aad) if aad else None)
+        except InvalidTag:
+            raise ValueError("GCM_TAG_FAIL: Ciphertext or AAD tag mismatch.")
+        except (TypeError, ValueError) as e:
+            raise DecryptionError(f"DECRYPTION_FAIL: Failed to decrypt payload: {e}") from e

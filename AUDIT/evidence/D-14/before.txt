@@ -1,0 +1,42 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d14.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_d14.py::test_placeholder_pixels_do_not_import_chaos_sponge FAILED [100%]
+
+================================== FAILURES ===================================
+_____________ test_placeholder_pixels_do_not_import_chaos_sponge ______________
+
+    def test_placeholder_pixels_do_not_import_chaos_sponge():
+        """
+        D-14: Verifies that placeholder pixel generation does NOT depend on
+        or invoke ChaoticEntropySponge, but uses deterministic constant or HKDF stream,
+        and marks BurnedInAnnotation as NO or non-diagnostic banner.
+        Must fail on v2.3.0 where pacs.py instantiated ChaoticEntropySponge to generate placeholder pixels.
+        """
+>       assert hasattr(pacs, "generate_placeholder_pixeldata"), (
+            "pacs module must provide generate_placeholder_pixeldata"
+        )
+E       AssertionError: pacs module must provide generate_placeholder_pixeldata
+E       assert False
+E        +  where False = hasattr(pacs, 'generate_placeholder_pixeldata')
+
+tests/adversarial/exploits/test_exploit_d14.py:15: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d14.py::test_placeholder_pixels_do_not_import_chaos_sponge - AssertionError: pacs module must provide generate_placeholder_pixeldata
+assert False
+ +  where False = hasattr(pacs, 'generate_placeholder_pixeldata')
+============================== 1 failed in 4.46s ==============================
+
+=== STDERR ===
+

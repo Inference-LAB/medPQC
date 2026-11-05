@@ -6,7 +6,7 @@ Unit tests for medpqc.cipher.diffusion module.
 
 import numpy as np
 import pytest
-from medpqc.cipher.diffusion import ChaoticDiffusion
+from medpqc.experimental.diffusion import ChaoticDiffusion
 
 def test_bitplane_diffusion_roundtrip():
     data = np.random.randint(0, 256, size=1024, dtype=np.uint8)
@@ -40,3 +40,11 @@ def test_cbc_avalanche_propagation():
 
     diff_count = np.count_nonzero(m1 != m2)
     assert diff_count >= 100  # Wide avalanche spread (approaching ~50% of block)
+
+def test_ccd_short_keystream_raises():
+    data = np.zeros(64, dtype=np.uint8)
+    short_key = np.zeros(10, dtype=np.uint8)
+    with pytest.raises(ValueError, match="Keystream too short"):
+        ChaoticDiffusion.ccd_mix(data, short_key, rounds=3)
+    with pytest.raises(ValueError, match="Keystream too short"):
+        ChaoticDiffusion.ccd_unmix(data, short_key, rounds=3)

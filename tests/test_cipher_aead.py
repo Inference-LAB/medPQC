@@ -60,3 +60,60 @@ def test_aead_wrong_aes_key_rejection():
 
     with pytest.raises(ValueError, match="GCM_TAG_FAIL"):
         AuthenticatedCipher.decrypt(bundle, wrong_aes, mac_key)
+
+def test_aead_with_aad_roundtrip_and_tamper():
+    aes_key = secrets.token_bytes(32)
+    mac_key = secrets.token_bytes(32)
+    plaintext = b"DICOM image payload"
+    aad = b"Metadata: Rows=512, Columns=512, BitsAllocated=16"
+
+    bundle = AuthenticatedCipher.encrypt(plaintext, aes_key, mac_key, aad=aad)
+    recovered = AuthenticatedCipher.decrypt(bundle, aes_key, mac_key, aad=aad)
+    assert recovered == plaintext
+
+    # Tamper with AAD
+    tampered_aad = b"Metadata: Rows=512, Columns=512, BitsAllocated=08"
+    with pytest.raises(ValueError, match="OUTER_HMAC_FAIL"):
+        AuthenticatedCipher.decrypt(bundle, aes_key, mac_key, aad=tampered_aad)
+
+def test_aead_validation_errors():
+    k32 = b"K" * 32
+    pt = b"test payload"
+
+    # Encrypt invalid keys/nonce
+    with pytest.raises(ValueError, match="Invalid AES key length"):
+        AuthenticatedCipher.encrypt(pt, b"short", k32)
+    with pytest.raises(ValueError, match="Invalid MAC key length"):
+        AuthenticatedCipher.encrypt(pt, k32, b"short")
+    with pytest.raises(ValueError, match="Invalid nonce length"):
+        AuthenticatedCipher.encrypt(pt, k32, k32, nonce=b"bad_nonce")
+
+    # Encrypt valid custom nonce
+    custom_nonce = b"\x01" * 12
+    bundle = AuthenticatedCipher.encrypt(pt, k32, k32, nonce=custom_nonce)
+    assert bundle['nonce'] == custom_nonce
+
+    # Decrypt invalid keys/bundle
+    with pytest.raises(ValueError, match="Invalid AES key length"):
+        AuthenticatedCipher.decrypt(bundle, b"bad", k32)
+    with pytest.raises(ValueError, match="Invalid MAC key length"):
+        AuthenticatedCipher.decrypt(bundle, k32, b"bad")
+    with pytest.raises(ValueError, match="AEAD bundle must be a dictionary"):
+        AuthenticatedCipher.decrypt("not-a-dict", k32, k32)
+
+    # Corrupt bundle components
+    b_bad_nonce = dict(bundle, nonce=b"short")
+    with pytest.raises(ValueError, match="Invalid nonce in AEAD bundle"):
+        AuthenticatedCipher.decrypt(b_bad_nonce, k32, k32)
+
+    b_bad_ct = dict(bundle, ciphertext="not_bytes")
+    with pytest.raises(ValueError, match="Missing or invalid ciphertext in AEAD bundle"):
+        AuthenticatedCipher.decrypt(b_bad_ct, k32, k32)
+
+    b_bad_tag = dict(bundle, gcm_tag=b"short")
+    with pytest.raises(ValueError, match="Invalid GCM tag in AEAD bundle"):
+        AuthenticatedCipher.decrypt(b_bad_tag, k32, k32)
+
+    b_bad_mac = dict(bundle, outer_mac=b"short")
+    with pytest.raises(ValueError, match="Invalid outer MAC in AEAD bundle"):
+        AuthenticatedCipher.decrypt(b_bad_mac, k32, k32)

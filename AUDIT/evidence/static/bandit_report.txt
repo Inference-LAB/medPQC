@@ -1,0 +1,109 @@
+﻿Run started:2026-11-01 08:20:43.866252+00:00
+
+Test results:
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: medpqc/dicom\pacs.py:495:20
+494	                        os.remove(output_dcm_path)
+495	                    except Exception:
+496	                        pass
+497	                raise AuthenticationError(
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: medpqc/dicom\pacs.py:529:16
+528	                    os.remove(output_dcm_path)
+529	                except Exception:
+530	                    pass
+531	            raise
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: medpqc/dicom\pacs.py:550:20
+549	                        os.remove(output_dcm_path)
+550	                    except Exception:
+551	                        pass
+552	                raise
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: medpqc/dicom\pacs.py:561:20
+560	                        metadata_ds.add_new((grp, elm), "LO", val)
+561	                    except Exception:
+562	                        pass
+563	                elif '.' in key:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: medpqc/dicom\pacs.py:572:20
+571	                                setattr(seq[seq_idx], tag_keyword, val)
+572	                    except Exception:
+573	                        pass
+574	                else:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: medpqc/dicom\pacs.py:585:16
+584	                    os.remove(output_dcm_path)
+585	                except Exception:
+586	                    pass
+587	            raise
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: medpqc/security\replay.py:109:12
+108	                self._conn.execute(f"PRAGMA busy_timeout={int(timeout * 1000)};")
+109	            except Exception:
+110	                pass
+111	        self._init_db()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: medpqc/security\replay.py:166:12
+165	                self._conn.close()
+166	            except Exception:
+167	                pass
+168	
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 3375
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 8
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 8
+Files skipped (0):

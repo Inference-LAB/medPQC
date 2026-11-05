@@ -1,0 +1,176 @@
+{
+  "release_version": "2.5.0",
+  "overall_verdict": "PASS",
+  "computed_release_status": "RESEARCH RELEASE: SECURITY REVIEW INCOMPLETE",
+  "code_tree_hash": "8a37702871756686a0c42752cda2b39216199da8ec834962af2c23f8102fa4fe",
+  "gates": [
+    {
+      "gate": 1,
+      "name": "Clean tree & tag",
+      "status": "PASS",
+      "reason": "Working tree clean, HEAD tagged v2.5.0, code_tree_hash: 8a37702871756686",
+      "details": {
+        "git_status_porcelain": "",
+        "head_tags": [
+          "v2.5.0"
+        ],
+        "code_tree_hash": "8a37702871756686a0c42752cda2b39216199da8ec834962af2c23f8102fa4fe"
+      }
+    },
+    {
+      "gate": 2,
+      "name": "Exploit test suite",
+      "status": "PASS",
+      "reason": "All exploit tests pass on HEAD and 43/43 baseline proofs verified",
+      "details": {
+        "returncode": 0,
+        "output": "============================= test session starts =============================\nplatform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0\nrootdir: D:\\INFERENCE Lab\\crypto paper\\medpqc\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0\ncollected 141 items\n\ntests\\adversarial\\exploits\\redteam_concurrency.py ..                     [  1%]\ntests\\adversarial\\exploits\\redteam_direction_confusion.py .              [  2%]\ntests\\adversarial\\exploits\\redteam_downgrade.py ..                       [  3%]\ntests\\adversarial\\exploits\\redteam_identity.py ...                       [  5%]\ntests\\adversarial\\exploits\\redteam_parser_attacks.py ......              [  9%]\ntests\\adversarial\\exploits\\redteam_partial_plaintext.py ..               [ 11%]\ntests\\adversarial\\exploits\\redteam_resource_exhaustion.py ....           [ 14%]\ntests\\adversarial\\exploits\\redteam_session_splice.py ..                  [ 15%]\ntests\\adversarial\\exploits\\redteam_state_attacks.py ...                  [ 17%]\ntests\\adversarial\\exploits\\test_exploit_d01.py ...                       [ 19%]\ntests\\adversarial\\exploits\\test_exploit_d02.py ...                       [ 21%]\ntests\\adversarial\\exploits\\test_exploit_d03.py .........                 [ 28%]\ntests\\adversarial\\exploits\\test_exploit_d04.py ..                        [ 29%]\ntests\\adversarial\\exploits\\test_exploit_d05.py ..                        [ 31%]\ntests\\adversarial\\exploits\\test_exploit_d06.py .                         [ 31%]\ntests\\adversarial\\exploits\\test_exploit_d07.py .                         [ 32%]\ntests\\adversarial\\exploits\\test_exploit_d08.py .                         [ 33%]\ntests\\adversarial\\exploits\\test_exploit_d09.py ..                        [ 34%]\ntests\\adversarial\\exploits\\test_exploit_d10.py ..                        [ 36%]\ntests\\adversarial\\exploits\\test_exploit_d11.py .                         [ 36%]\ntests\\adversarial\\exploits\\test_exploit_d12.py ...                       [ 39%]\ntests\\adversarial\\exploits\\test_exploit_d13.py .                         [ 39%]\ntests\\adversarial\\exploits\\test_exploit_d14.py .                         [ 40%]\ntests\\adversarial\\exploits\\test_exploit_d15.py .                         [ 41%]\ntests\\adversarial\\exploits\\test_exploit_d16.py .                         [ 41%]\ntests\\adversarial\\exploits\\test_exploit_d17.py .                         [ 42%]\ntests\\adversarial\\exploits\\test_exploit_d18.py .                         [ 43%]\ntests\\adversarial\\exploits\\test_exploit_d19.py .                         [ 43%]\ntests\\adversarial\\exploits\\test_exploit_d20.py ..                        [ 45%]\ntests\\adversarial\\exploits\\test_exploit_d21.py .                         [ 46%]\ntests\\adversarial\\exploits\\test_exploit_d22.py .                         [ 46%]\ntests\\adversarial\\exploits\\test_exploit_d23.py .                         [ 47%]\ntests\\adversarial\\exploits\\test_exploit_d24.py .                         [ 48%]\ntests\\adversarial\\exploits\\test_exploit_d25.py .                         [ 48%]\ntests\\adversarial\\exploits\\test_exploit_f_chaos_01.py .                  [ 49%]\ntests\\adversarial\\exploits\\test_exploit_f_dicom_01.py .                  [ 50%]\ntests\\adversarial\\exploits\\test_exploit_f_dicom_02.py .....              [ 53%]\ntests\\adversarial\\exploits\\test_exploit_f_dicom_03.py .                  [ 54%]\ntests\\adversarial\\exploits\\test_exploit_f_dicom_05.py .                  [ 55%]\ntests\\adversarial\\exploits\\test_exploit_f_doc_01.py .                    [ 56%]\ntests\\adversarial\\exploits\\test_exploit_f_env_01.py ....                 [ 58%]\ntests\\adversarial\\exploits\\test_exploit_f_hs_01.py .                     [ 59%]\ntests\\adversarial\\exploits\\test_exploit_f_hs_02.py .                     [ 60%]\ntests\\adversarial\\exploits\\test_exploit_f_hs_03.py .                     [ 60%]\ntests\\adversarial\\exploits\\test_exploit_f_hs_04.py ..                    [ 62%]\ntests\\adversarial\\exploits\\test_exploit_f_hs_06.py .                     [ 63%]\ntests\\adversarial\\exploits\\test_exploit_f_rel_01.py .                    [ 63%]\ntests\\adversarial\\exploits\\test_exploit_n01.py ....                      [ 66%]\ntests\\adversarial\\exploits\\test_exploit_n02.py ..                        [ 68%]\ntests\\adversarial\\exploits\\test_exploit_n03.py .                         [ 68%]\ntests\\adversarial\\exploits\\test_exploit_n04.py ...                       [ 70%]\ntests\\adversarial\\exploits\\test_exploit_n05.py ..                        [ 72%]\ntests\\adversarial\\exploits\\test_exploit_n06.py ...                       [ 74%]\ntests\\adversarial\\exploits\\test_exploit_n07.py ..                        [ 75%]\ntests\\adversarial\\exploits\\test_exploit_n08.py ...                       [ 78%]\ntests\\adversarial\\exploits\\test_exploit_n09.py ...                       [ 80%]\ntests\\adversarial\\exploits\\test_exploit_n10.py .............             [ 89%]\ntests\\adversarial\\exploits\\test_exploit_n11.py ..                        [ 90%]\ntests\\adversarial\\exploits\\test_exploit_n12.py ..                        [ 92%]\ntests\\adversarial\\exploits\\test_exploit_n13.py ..                        [ 93%]\ntests\\adversarial\\exploits\\test_exploit_n14.py .                         [ 94%]\ntests\\adversarial\\exploits\\test_exploit_n15.py ..                        [ 95%]\ntests\\adversarial\\exploits\\test_exploit_n16.py ..                        [ 97%]\ntests\\adversarial\\exploits\\test_exploit_n17.py ..                        [ 98%]\ntests\\adversarial\\exploits\\test_exploit_n18.py ..                        [100%]\n\n============================== warnings summary ===============================\ntests/adversarial/exploits/redteam_partial_plaintext.py: 2 warnings\ntests/adversarial/exploits/redteam_session_splice.py: 3 warnings\ntests/adversarial/exploits/test_exploit_d12.py: 3 warnings\ntests/adversarial/exploits/test_exploit_f_dicom_02.py: 6 warnings\ntests/adversarial/exploits/test_exploit_f_dicom_03.py: 1 warning\ntests/adversarial/exploits/test_exploit_f_dicom_05.py: 1 warning\ntests/adversarial/exploits/test_exploit_n04.py: 1 warning\ntests/adversarial/exploits/test_exploit_n05.py: 4 warnings\ntests/adversarial/exploits/test_exploit_n06.py: 1 warning\ntests/adversarial/exploits/test_exploit_n07.py: 1 warning\ntests/adversarial/exploits/test_exploit_n09.py: 1 warning\n  C:\\Users\\Muzammil Shadab\\AppData\\Roaming\\Python\\Python314\\site-packages\\pydicom\\filewriter.py:1309: DeprecationWarning: 'write_like_original' is deprecated and will be removed in v4.0, please use 'enforce_file_format' instead\n    warn_and_log(\n\ntests/adversarial/exploits/test_exploit_d01.py::test_other_node_rejects_message_for_bob\n  D:\\INFERENCE Lab\\crypto paper\\medpqc\\tests\\adversarial\\exploits\\test_exploit_d01.py:46: NonDurableReplayStoreWarning: Using non-durable in-memory replay store in ResponderContext.\n    carol_ctx = ResponderContext(\n\ntests/adversarial/exploits/test_exploit_d03.py::test_seconds_encoded_timestamp_not_accepted\n  D:\\INFERENCE Lab\\crypto paper\\medpqc\\tests\\adversarial\\exploits\\test_exploit_d03.py:45: NonDurableReplayStoreWarning: Using non-durable in-memory replay store in ResponderContext.\n    bob_ctx = ResponderContext(\n\ntests/adversarial/exploits/test_exploit_d06.py::test_session_produces_direction_bound_ciphers\n  D:\\INFERENCE Lab\\crypto paper\\medpqc\\tests\\adversarial\\exploits\\test_exploit_d06.py:26: NonDurableReplayStoreWarning: Using non-durable in-memory replay store in ResponderContext.\n    bob_ctx = ResponderContext(\"bob\", bob_id, bob_trust, MemoryReplayStore(), allow_non_durable_replay_store=True)\n\ntests/adversarial/exploits/test_exploit_f_hs_02.py::test_responder_rejects_unknown_version_and_suite\n  D:\\INFERENCE Lab\\crypto paper\\medpqc\\tests\\adversarial\\exploits\\test_exploit_f_hs_02.py:36: NonDurableReplayStoreWarning: Using non-durable in-memory replay store in ResponderContext.\n    responder = ResponderContext(\n\ntests/adversarial/exploits/test_exploit_f_hs_03.py::test_message_for_bob_rejected_by_carol\n  D:\\INFERENCE Lab\\crypto paper\\medpqc\\tests\\adversarial\\exploits\\test_exploit_f_hs_03.py:36: NonDurableReplayStoreWarning: Using non-durable in-memory replay store in ResponderContext.\n    responder = ResponderContext(\n\ntests/adversarial/exploits/test_exploit_f_hs_04.py::test_replayed_initiation_rejected_with_typed_error\n  D:\\INFERENCE Lab\\crypto paper\\medpqc\\tests\\adversarial\\exploits\\test_exploit_f_hs_04.py:47: NonDurableReplayStoreWarning: Using non-durable in-memory replay store in ResponderContext.\n    responder = ResponderContext(\n\ntests/adversarial/exploits/test_exploit_n01.py::test_other_node_rejects_message_for_bob\n  D:\\INFERENCE Lab\\crypto paper\\medpqc\\tests\\adversarial\\exploits\\test_exploit_n01.py:107: NonDurableReplayStoreWarning: Using non-durable in-memory replay store in ResponderContext.\n    carol_ctx = ResponderContext(\"carol\", carol_id, trust, replay_carol, allow_non_durable_replay_store=True)\n\ntests/adversarial/exploits/test_exploit_n02.py::test_in_memory_store_requires_explicit_dev_flag\n  D:\\INFERENCE Lab\\crypto paper\\medpqc\\tests\\adversarial\\exploits\\test_exploit_n02.py:59: NonDurableReplayStoreWarning: Using non-durable in-memory replay store in ResponderContext.\n    ctx = ResponderContext(\"bob\", identity, trust, mem_store, allow_non_durable_replay_store=True)\n\ntests/adversarial/exploits/test_exploit_n04.py::test_all_canary_categories_absent_from_cleartext\ntests/adversarial/exploits/test_exploit_n04.py::test_overlay_and_burned_in_annotation_rejected\ntests/adversarial/exploits/test_exploit_n05.py::test_restore_does_not_inject_burned_in_annotation_when_absent\ntests/adversarial/exploits/test_exploit_n05.py::test_restore_tag_sets_equal\ntests/adversarial/exploits/test_exploit_n08.py::test_encapsulated_jpeg_raises_unsupported_dicom_error\n  C:\\Users\\Muzammil Shadab\\AppData\\Roaming\\Python\\Python314\\site-packages\\pydicom\\dataset.py:1378: DeprecationWarning: 'FileDataset.is_little_endian' will be removed in v4.0, set the Transfer Syntax UID or use the 'little_endian' argument with FileDataset.save_as() or dcmwrite() instead\n    warn_and_log(\n\ntests/adversarial/exploits/test_exploit_n04.py::test_all_canary_categories_absent_from_cleartext\ntests/adversarial/exploits/test_exploit_n04.py::test_overlay_and_burned_in_annotation_rejected\ntests/adversarial/exploits/test_exploit_n05.py::test_restore_does_not_inject_burned_in_annotation_when_absent\ntests/adversarial/exploits/test_exploit_n05.py::test_restore_tag_sets_equal\ntests/adversarial/exploits/test_exploit_n08.py::test_encapsulated_jpeg_raises_unsupported_dicom_error\n  C:\\Users\\Muzammil Shadab\\AppData\\Roaming\\Python\\Python314\\site-packages\\pydicom\\dataset.py:1337: DeprecationWarning: 'FileDataset.is_implicit_VR' will be removed in v4.0, set the Transfer Syntax UID or use the 'implicit_vr' argument with FileDataset.save_as() or dcmwrite() instead\n    warn_and_log(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n====================== 141 passed, 42 warnings in 19.87s ======================",
+        "missing_baseline_proofs": []
+      }
+    },
+    {
+      "gate": 3,
+      "name": "Full test suite",
+      "status": "PASS",
+      "reason": "363 passed, 0 failed, 0 errors, 0 skipped",
+      "details": {
+        "returncode": 0,
+        "counts": {
+          "passed": 363,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "skip_reasons": []
+      }
+    },
+    {
+      "gate": 4,
+      "name": "Branch coverage floors",
+      "status": "PASS",
+      "reason": "Branch coverage meets all package floors without unjustified pragmas: {'kem': 90.3, 'cipher': 93.7, 'security': 93.0, 'dicom': 92.0, 'utils': 94.1}",
+      "details": {
+        "returncode": 0,
+        "per_package_coverage": {
+          "kem": 90.3,
+          "cipher": 93.7,
+          "security": 93.0,
+          "dicom": 92.0,
+          "utils": 94.1
+        },
+        "violations": [],
+        "unjustified_pragmas": []
+      }
+    },
+    {
+      "gate": 5,
+      "name": "Static analysis",
+      "status": "PASS",
+      "reason": "mypy strict passed, ruff clean, bandit 0 findings, pip-audit recorded",
+      "details": {
+        "mypy_rc": 0,
+        "mypy_clean": true,
+        "ruff_check_rc": 0,
+        "ruff_format_rc": 0,
+        "bandit_issues": 0,
+        "pip_audit": "NOT RUN: pip-audit tool not installed in environment"
+      }
+    },
+    {
+      "gate": 6,
+      "name": "AST policy checks",
+      "status": "PASS",
+      "reason": "Zero AST policy violations across all source files",
+      "details": {
+        "violations": [],
+        "scanned_files": 27
+      }
+    },
+    {
+      "gate": 7,
+      "name": "Import checks",
+      "status": "PASS",
+      "reason": "Light-core import succeeds without pydicom and experimental modules are isolated",
+      "details": {
+        "light_core_ok": true,
+        "experimental_isolation_ok": true,
+        "stdout": "LIGHT_CORE_IMPORT_SUCCESS"
+      }
+    },
+    {
+      "gate": 8,
+      "name": "KAT provenance",
+      "status": "PASS",
+      "reason": "SHA-256 verified against NIST ACVP commit 15c0f3d; 80 cases executed",
+      "details": {
+        "actual_hash": "1888f452d9c79345a5c1b8372bc62b0869001c6558ae932bc6bab1605095ed56",
+        "expected_hash": "1888f452d9c79345a5c1b8372bc62b0869001c6558ae932bc6bab1605095ed56",
+        "case_counts": {
+          "keyGen": 25,
+          "encap": 35,
+          "decap": 20
+        },
+        "total_cases": 80
+      }
+    },
+    {
+      "gate": 9,
+      "name": "Documentation hygiene",
+      "status": "PASS",
+      "reason": "Forbidden claims tests pass, protocol vectors in sync, evidence files exist",
+      "details": {
+        "d15_rc": 0,
+        "f_doc_01_rc": 0,
+        "spec_vectors_sync_rc": 0,
+        "missing_evidence": []
+      }
+    },
+    {
+      "gate": 10,
+      "name": "Packaging integrity",
+      "status": "PASS",
+      "reason": "Sdist, wheel, and zip archives validated against deny-list",
+      "details": {
+        "artifacts_exist": true,
+        "deny_list_violations": []
+      }
+    },
+    {
+      "gate": 11,
+      "name": "Checksums",
+      "status": "PASS",
+      "reason": "SHA-256 checksums verified for all release artifacts with strict LF",
+      "details": {
+        "strict_lf": true,
+        "mismatches": []
+      }
+    },
+    {
+      "gate": 12,
+      "name": "Benchmarks reproducibility",
+      "status": "PASS",
+      "reason": "Raw CSVs contain >=30 reps per cell and match benchmarks/REPORT.md",
+      "details": {
+        "d22_test_rc": 0,
+        "report_exists": true
+      }
+    },
+    {
+      "gate": 13,
+      "name": "Ledger & release status",
+      "status": "PASS",
+      "reason": "All 86 items categorized with valid statuses; release status: RESEARCH RELEASE: SECURITY REVIEW INCOMPLETE",
+      "details": {
+        "has_banned_resolved": false,
+        "total_items": 86,
+        "status_counts": {
+          "FIXED AND TESTED": 84,
+          "IMPLEMENTED, NOT INDEPENDENTLY VERIFIED": 2
+        },
+        "invalid_statuses": [],
+        "unfixed_critical_or_high": [],
+        "computed_release_status": "RESEARCH RELEASE: SECURITY REVIEW INCOMPLETE"
+      }
+    }
+  ]
+}

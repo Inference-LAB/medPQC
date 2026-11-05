@@ -1,0 +1,49 @@
+Baseline Git Commit: 7367c26d05c2ef9ada3f7e2a0684362aa614e00d
+Command: python -m pytest tests/adversarial/exploits/test_exploit_f_hs_04.py -v
+Exit Code: 1
+
+Captured Output:
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- /usr/bin\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+tests/adversarial/exploits/test_exploit_f_hs_04.py::test_responder_cannot_be_built_without_replay_store PASSED [ 50%]
+tests/adversarial/exploits/test_exploit_f_hs_04.py::test_replayed_initiation_rejected_with_typed_error FAILED [100%]
+
+================================== FAILURES ===================================
+_____________ test_replayed_initiation_rejected_with_typed_error ______________
+
+    def test_replayed_initiation_rejected_with_typed_error():
+        """
+        F-HS-04: A replayed initiation message must be rejected with ReplayDetectedError.
+        Must fail on v2.2 where replay without a store is accepted silently.
+        """
+        alice = IdentityKeyPair()
+        bob = IdentityKeyPair()
+        trust = TrustStore()
+        trust.register_peer("alice-pacs", alice.public_bytes)
+        trust.register_peer("bob-pacs", bob.public_bytes)
+    
+        kem = AuthenticatedHybridKEM()
+        init, _, _ = kem.initiate(
+            alice,
+            b"session-12345678",
+            sender_id="alice-pacs",
+            receiver_id="bob-pacs",
+        )
+    
+        # In v2.2, omitting replay_protector accepts duplicate initiation without error
+        resp1 = kem.respond(init, bob, trust_store=trust)
+>       with pytest.raises(ReplayDetectedError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ReplayDetectedError
+
+tests\adversarial\exploits\test_exploit_f_hs_04.py:60: Failed
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_f_hs_04.py::test_replayed_initiation_rejected_with_typed_error - Failed: DID NOT RAISE ReplayDetectedError
+========================= 1 failed, 1 passed in 3.49s =========================

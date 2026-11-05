@@ -1,0 +1,6 @@
+Gate 4: Per-Package Branch Coverage Floors
+Status: PASS
+Reason: Branch coverage meets all package floors without unjustified pragmas: {'kem': 90.3, 'cipher': 93.7, 'security': 93.0, 'dicom': 92.0, 'utils': 94.1}
+Coverage: {'kem': 90.3, 'cipher': 93.7, 'security': 93.0, 'dicom': 92.0, 'utils': 94.1}
+Violations: []
+Unjustified Pragmas: []

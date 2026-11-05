@@ -1,0 +1,160 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d03.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 9 items
+
+tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[1700000000.0] FAILED [ 11%]
+tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[1793540007.203] FAILED [ 22%]
+tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[True] FAILED [ 33%]
+tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[-1] FAILED [ 44%]
+tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[18446744073709551616] FAILED [ 55%]
+tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[1793540007203] FAILED [ 66%]
+tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[None] FAILED [ 77%]
+tests/adversarial/exploits/test_exploit_d03.py::test_seconds_encoded_timestamp_not_accepted FAILED [ 88%]
+tests/adversarial/exploits/test_exploit_d03.py::test_strict_wire_parsers_reject_trailing_bytes FAILED [100%]
+
+================================== FAILURES ===================================
+_____________ test_non_uint64_ms_timestamp_rejected[1700000000.0] _____________
+
+bad_ts = 1700000000.0
+
+    @pytest.mark.parametrize("bad_ts", [1.7e9, 1793540007.203, True, -1, 2**64, "1793540007203", None])
+    def test_non_uint64_ms_timestamp_rejected(bad_ts):
+        """
+        D-03: Verifies that timestamps that are not uint64 milliseconds are strictly rejected.
+        Must fail on v2.3.0 where float or flexible timestamps were accepted or coerced.
+        """
+>       from medpqc.kem.auth import parse_initiation, ParseError
+E       ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+
+tests/adversarial/exploits/test_exploit_d03.py:17: ImportError
+____________ test_non_uint64_ms_timestamp_rejected[1793540007.203] ____________
+
+bad_ts = 1793540007.203
+
+    @pytest.mark.parametrize("bad_ts", [1.7e9, 1793540007.203, True, -1, 2**64, "1793540007203", None])
+    def test_non_uint64_ms_timestamp_rejected(bad_ts):
+        """
+        D-03: Verifies that timestamps that are not uint64 milliseconds are strictly rejected.
+        Must fail on v2.3.0 where float or flexible timestamps were accepted or coerced.
+        """
+>       from medpqc.kem.auth import parse_initiation, ParseError
+E       ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+
+tests/adversarial/exploits/test_exploit_d03.py:17: ImportError
+_________________ test_non_uint64_ms_timestamp_rejected[True] _________________
+
+bad_ts = True
+
+    @pytest.mark.parametrize("bad_ts", [1.7e9, 1793540007.203, True, -1, 2**64, "1793540007203", None])
+    def test_non_uint64_ms_timestamp_rejected(bad_ts):
+        """
+        D-03: Verifies that timestamps that are not uint64 milliseconds are strictly rejected.
+        Must fail on v2.3.0 where float or flexible timestamps were accepted or coerced.
+        """
+>       from medpqc.kem.auth import parse_initiation, ParseError
+E       ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+
+tests/adversarial/exploits/test_exploit_d03.py:17: ImportError
+__________________ test_non_uint64_ms_timestamp_rejected[-1] __________________
+
+bad_ts = -1
+
+    @pytest.mark.parametrize("bad_ts", [1.7e9, 1793540007.203, True, -1, 2**64, "1793540007203", None])
+    def test_non_uint64_ms_timestamp_rejected(bad_ts):
+        """
+        D-03: Verifies that timestamps that are not uint64 milliseconds are strictly rejected.
+        Must fail on v2.3.0 where float or flexible timestamps were accepted or coerced.
+        """
+>       from medpqc.kem.auth import parse_initiation, ParseError
+E       ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+
+tests/adversarial/exploits/test_exploit_d03.py:17: ImportError
+_________ test_non_uint64_ms_timestamp_rejected[18446744073709551616] _________
+
+bad_ts = 18446744073709551616
+
+    @pytest.mark.parametrize("bad_ts", [1.7e9, 1793540007.203, True, -1, 2**64, "1793540007203", None])
+    def test_non_uint64_ms_timestamp_rejected(bad_ts):
+        """
+        D-03: Verifies that timestamps that are not uint64 milliseconds are strictly rejected.
+        Must fail on v2.3.0 where float or flexible timestamps were accepted or coerced.
+        """
+>       from medpqc.kem.auth import parse_initiation, ParseError
+E       ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+
+tests/adversarial/exploits/test_exploit_d03.py:17: ImportError
+____________ test_non_uint64_ms_timestamp_rejected[1793540007203] _____________
+
+bad_ts = '1793540007203'
+
+    @pytest.mark.parametrize("bad_ts", [1.7e9, 1793540007.203, True, -1, 2**64, "1793540007203", None])
+    def test_non_uint64_ms_timestamp_rejected(bad_ts):
+        """
+        D-03: Verifies that timestamps that are not uint64 milliseconds are strictly rejected.
+        Must fail on v2.3.0 where float or flexible timestamps were accepted or coerced.
+        """
+>       from medpqc.kem.auth import parse_initiation, ParseError
+E       ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+
+tests/adversarial/exploits/test_exploit_d03.py:17: ImportError
+_________________ test_non_uint64_ms_timestamp_rejected[None] _________________
+
+bad_ts = None
+
+    @pytest.mark.parametrize("bad_ts", [1.7e9, 1793540007.203, True, -1, 2**64, "1793540007203", None])
+    def test_non_uint64_ms_timestamp_rejected(bad_ts):
+        """
+        D-03: Verifies that timestamps that are not uint64 milliseconds are strictly rejected.
+        Must fail on v2.3.0 where float or flexible timestamps were accepted or coerced.
+        """
+>       from medpqc.kem.auth import parse_initiation, ParseError
+E       ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+
+tests/adversarial/exploits/test_exploit_d03.py:17: ImportError
+_________________ test_seconds_encoded_timestamp_not_accepted _________________
+
+    def test_seconds_encoded_timestamp_not_accepted():
+        """
+        D-03: Verifies that a seconds-encoded timestamp (value < 1e11) is rejected,
+        not magically converted to milliseconds.
+        Must fail on v2.3.0 where values < 1e11 were converted by `int(ts * 1000)`.
+        """
+>       from medpqc.kem.auth import ResponderContext, InitiatorContext, ParseError, AuthenticationError
+E       ImportError: cannot import name 'ResponderContext' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+
+tests/adversarial/exploits/test_exploit_d03.py:30: ImportError
+_______________ test_strict_wire_parsers_reject_trailing_bytes ________________
+
+    def test_strict_wire_parsers_reject_trailing_bytes():
+        """
+        D-03: Strict wire parsers reject trailing bytes or corrupt wire framing.
+        Must fail on v2.3.0.
+        """
+>       from medpqc.kem.auth import parse_initiation, parse_response, ParseError
+E       ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+
+tests/adversarial/exploits/test_exploit_d03.py:61: ImportError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[1700000000.0] - ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+FAILED tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[1793540007.203] - ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+FAILED tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[True] - ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+FAILED tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[-1] - ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+FAILED tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[18446744073709551616] - ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+FAILED tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[1793540007203] - ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+FAILED tests/adversarial/exploits/test_exploit_d03.py::test_non_uint64_ms_timestamp_rejected[None] - ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+FAILED tests/adversarial/exploits/test_exploit_d03.py::test_seconds_encoded_timestamp_not_accepted - ImportError: cannot import name 'ResponderContext' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+FAILED tests/adversarial/exploits/test_exploit_d03.py::test_strict_wire_parsers_reject_trailing_bytes - ImportError: cannot import name 'parse_initiation' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+============================== 9 failed in 5.39s ==============================
+
+=== STDERR ===
+

@@ -1,0 +1,67 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d10.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+tests/adversarial/exploits/test_exploit_d10.py::test_default_decrypt_requires_explicit_source FAILED [ 50%]
+tests/adversarial/exploits/test_exploit_d10.py::test_corrupt_embedded_manifest_never_uses_sidecar FAILED [100%]
+
+================================== FAILURES ===================================
+________________ test_default_decrypt_requires_explicit_source ________________
+
+    def test_default_decrypt_requires_explicit_source():
+        """
+        D-10: Verifies that decrypt_dicom_file has no default for 'source',
+        and ManifestSource.AUTO is deleted.
+        Must fail on v2.3.0 where default source was ManifestSource.AUTO.
+        """
+        sig = inspect.signature(DICOMPACSEnvelope.decrypt_dicom_file)
+        assert "source" in sig.parameters, "decrypt_dicom_file must accept source"
+>       assert sig.parameters["source"].default is inspect.Parameter.empty, (
+            "source parameter must have NO default value"
+        )
+E       AssertionError: source parameter must have NO default value
+E       assert <ManifestSource.AUTO: 'auto'> is <class 'inspect._empty'>
+E        +  where <ManifestSource.AUTO: 'auto'> = <Parameter "source: medpqc.dicom.pacs.ManifestSource | str = <ManifestSource.AUTO: 'auto'>">.default
+E        +  and   <class 'inspect._empty'> = <class 'inspect.Parameter'>.empty
+E        +    where <class 'inspect.Parameter'> = inspect.Parameter
+
+tests/adversarial/exploits/test_exploit_d10.py:17: AssertionError
+______________ test_corrupt_embedded_manifest_never_uses_sidecar ______________
+
+tmp_path = WindowsPath('/home/user/AppData/Local/Temp/pytest-of-Muzammil Shadab/pytest-7/test_corrupt_embedded_manifest0')
+
+    def test_corrupt_embedded_manifest_never_uses_sidecar(tmp_path):
+        """
+        D-10: Verifies that corrupted embedded manifest raises ManifestError
+        and never falls back to reading a sidecar file.
+        Must fail on v2.3.0 where it fell back to sidecar or AUTO was used.
+        """
+>       assert not hasattr(ManifestSource, "AUTO"), "ManifestSource.AUTO must be completely deleted"
+E       AssertionError: ManifestSource.AUTO must be completely deleted
+E       assert not True
+E        +  where True = hasattr(ManifestSource, 'AUTO')
+
+tests/adversarial/exploits/test_exploit_d10.py:29: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d10.py::test_default_decrypt_requires_explicit_source - AssertionError: source parameter must have NO default value
+assert <ManifestSource.AUTO: 'auto'> is <class 'inspect._empty'>
+ +  where <ManifestSource.AUTO: 'auto'> = <Parameter "source: medpqc.dicom.pacs.ManifestSource | str = <ManifestSource.AUTO: 'auto'>">.default
+ +  and   <class 'inspect._empty'> = <class 'inspect.Parameter'>.empty
+ +    where <class 'inspect.Parameter'> = inspect.Parameter
+FAILED tests/adversarial/exploits/test_exploit_d10.py::test_corrupt_embedded_manifest_never_uses_sidecar - AssertionError: ManifestSource.AUTO must be completely deleted
+assert not True
+ +  where True = hasattr(ManifestSource, 'AUTO')
+============================== 2 failed in 5.12s ==============================
+
+=== STDERR ===
+

@@ -1,0 +1,35 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d06.py -v
+Exit Code: 1
+Git Commit: 4be09bdbbc142e034458641f6fdf49d8be729be8
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_d06.py::test_session_produces_direction_bound_ciphers FAILED [100%]
+
+================================== FAILURES ===================================
+________________ test_session_produces_direction_bound_ciphers ________________
+
+    def test_session_produces_direction_bound_ciphers():
+        """
+        D-06: Verifies that Session produces sender_cipher() and receiver_cipher()
+        bound to thread-safe invocation counters, enforcing KeyUsageLimitExceeded.
+        Must fail on v2.3.0 where Session did not have sender_cipher/receiver_cipher.
+        """
+>       from medpqc.kem.auth import InitiatorContext, ResponderContext, KeyUsageLimitExceeded
+E       ImportError: cannot import name 'InitiatorContext' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+
+tests/adversarial/exploits/test_exploit_d06.py:14: ImportError
+=========================== short test summary info ===========================
+FAILED tests/adversarial/exploits/test_exploit_d06.py::test_session_produces_direction_bound_ciphers - ImportError: cannot import name 'InitiatorContext' from 'medpqc.kem.auth' (/workspace/medpqc/medpqc/kem/auth.py)
+============================== 1 failed in 3.99s ==============================
+
+=== STDERR ===
+

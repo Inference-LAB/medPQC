@@ -1,0 +1,20 @@
+Command: C:/Program Files/Python314/python.exe -m pytest tests/adversarial/exploits/test_exploit_d14.py -v
+Exit Code: 0
+Git Commit: 905150eb1716358ca339dec96840161a135330ae
+
+=== STDOUT ===
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.2.0, pluggy-1.7.0 -- C:/Program Files/Python314/python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /workspace/medpqc
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.170.14, platformdirs-4.14.2, cov-7.1.0
+collecting ... collected 1 item
+
+tests/adversarial/exploits/test_exploit_d14.py::test_placeholder_pixels_do_not_import_chaos_sponge PASSED [100%]
+
+============================== 1 passed in 4.11s ==============================
+
+=== STDERR ===
+

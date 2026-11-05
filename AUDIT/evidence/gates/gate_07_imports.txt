@@ -1,0 +1,5 @@
+Gate 7: Import Isolation Checks
+Status: PASS
+Reason: Light-core import succeeds without pydicom and experimental modules are isolated
+Light-core ok: True
+Isolation ok: True
