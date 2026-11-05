@@ -1,7 +1,7 @@
 # MedPQC: Authenticated Hybrid Post-Quantum Medical Image Encryption and PACS Security Framework
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://www.python.org/)
+[![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/status-active-success.svg)](https://github.com/Inference-Lab/medPQC)
 [![Standard: NIST FIPS 203](https://img.shields.io/badge/standard-NIST%20FIPS%20203%20(ML--KEM--768)-blueviolet.svg)](https://csrc.nist.gov/pubs/fips/203/final)
 
@@ -78,7 +78,7 @@ Picture Archiving and Communication Systems (PACS) and cloud-native healthcare n
 
 ## Installation
 
-MedPQC requires Python >= 3.10.
+MedPQC requires Python >= 3.11.
 
 ```bash
 # Clone the repository

@@ -1,2 +1,2 @@
-d07b48c44fce9c2abd77c792580e42604ca25184a4303f9b17c3c570fdcb69ff  medpqc-1.1.0-py3-none-any.whl
-76157ebabad3eab24966ee4c82c5db76cd83554dc9304b394d61d07d2d8b2fdd  medpqc-1.1.0.tar.gz
+323de8dc4b45e1afedb37c38d124ff5b480da97c8ede00648ff32e56c88bed88  medpqc-1.1.0-py3-none-any.whl
+d6f4832e82b19ca560b455d0f2788349e0026dc60925cf54b4cdef6fd01c45a6  medpqc-1.1.0.tar.gz

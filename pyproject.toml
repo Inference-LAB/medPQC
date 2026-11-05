@@ -7,7 +7,7 @@ name = "medpqc"
 version = "1.1.0"
 description = "High-Performance Authenticated Hybrid Post-Quantum Medical Image Encryption and PACS Framework"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 authors = [
     {name = "Muhammad Khubaib Ahmad", email = "khubaib.ahmad@inference-lab.org"},
@@ -29,7 +29,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: Healthcare Industry",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -111,7 +110,7 @@ show_missing = true
 
 [tool.ruff]
 line-length = 120
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]

@@ -12,7 +12,7 @@
   - Linux (Ubuntu 20.04+, Debian 11+, RHEL 8+, Alpine 3.18+)
   - macOS (macOS 12 Monterey or newer, Apple Silicon and Intel)
   - Microsoft Windows (Windows 10, Windows 11, Windows Server 2019+)
-- **Python Runtime**: Python 3.9, 3.10, 3.11, 3.12, 3.13, or 3.14 (64-bit).
+- **Python Runtime**: Python 3.11, 3.12, 3.13, or 3.14 (64-bit).
 
 ---
 
